@@ -76,14 +76,14 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 app.get('/', (req, res) => {
   res.json({
     message: 'API de Personajes funcionando correctamente',
-    documentation: 'http://localhost:3000/api-docs',
+    documentation: 'https://hvsv.onrender.com/api-docs',
     endpoints: {
-      users: 'http://localhost:3000/api/users',
-      personajes: 'http://localhost:3000/api/personajes',
-      personajesByTipo: 'http://localhost:3000/api/personajes/tipo/{tipo}',
-      personajesByCiudad: 'http://localhost:3000/api/personajes/ciudad/{ciudad}',
-      fights: 'http://localhost:3000/api/fights',
-      login: 'http://localhost:3000/api/login'
+      users: 'https://hvsv.onrender.com/api/users',
+      personajes: 'https://hvsv.onrender.com/api/personajes',
+      personajesByTipo: 'https://hvsv.onrender.com/api/personajes/tipo/{tipo}',
+      personajesByCiudad: 'https://hvsv.onrender.com/api/personajes/ciudad/{ciudad}',
+      fights: 'https://hvsv.onrender.com/api/fights',
+      login: 'https://hvsv.onrender.com/api/login'
     }
   })
 })
