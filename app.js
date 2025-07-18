@@ -77,7 +77,7 @@ const BASE_URL = process.env.BASE_URL || 'https://hvsv.onrender.com';
 app.get('/', (req, res) => {
   res.json({
     message: 'API de Personajes funcionando correctamente',
-    documentation: `${BASE_URL}/api-docs`,
+    documentation: `${BASE_URL}/api-docs/`,
     endpoints: {
       users: `${BASE_URL}/api/users`,
       personajes: `${BASE_URL}/api/personajes`,
