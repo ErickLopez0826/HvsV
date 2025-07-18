@@ -2,6 +2,7 @@ import express from "express";
 import { check, validationResult, body } from 'express-validator';
 import personajeService from '../services/heroService.js';
 import fightRepository from '../repositories/fightRepository.js';
+import { Heroe, Villano } from '../models/Personaje.js';
 
 const router = express.Router();
 
@@ -47,7 +48,8 @@ const router = express.Router();
 router.get('/fights', async (req, res) => {
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
-  const fights = await fightRepository.getFights();
+  const creador = req.user && req.user.name;
+  const fights = await fightRepository.getFights(creador);
   const total = fights.length;
   const totalPages = Math.ceil(total / limit);
   const start = (page - 1) * limit;
@@ -60,7 +62,7 @@ router.get('/fights', async (req, res) => {
  * @swagger
  * /api/fights:
  *   post:
- *     summary: Simular una pelea entre un superhéroe y un villano
+ *     summary: Realizar un turno en una pelea 1 vs 1
  *     tags: [Peleas]
  *     requestBody:
  *       required: true
@@ -69,32 +71,53 @@ router.get('/fights', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
+ *               fightId:
+ *                 type: integer
+ *                 description: ID de la pelea (solo para continuar pelea, no requerido para iniciar)
  *               id1:
  *                 type: integer
- *                 example: 1
+ *                 description: ID del primer personaje (requerido solo para iniciar pelea)
  *               id2:
  *                 type: integer
- *                 example: 2
+ *                 description: ID del segundo personaje (requerido solo para iniciar pelea)
+ *               atacanteId:
+ *                 type: integer
+ *                 description: ID del personaje que ataca
+ *               defensorId:
+ *                 type: integer
+ *                 description: ID del personaje que recibe el ataque
+ *               tipoAtaque:
+ *                 type: string
+ *                 enum: [basico, especial, critico, ultimate]
+ *                 description: Tipo de ataque a realizar
+ *             required:
+ *               - atacanteId
+ *               - defensorId
+ *               - tipoAtaque
+ *             example:
+ *               id1: 1
+ *               id2: 2
+ *               atacanteId: 1
+ *               defensorId: 2
+ *               tipoAtaque: "basico"
  *     responses:
  *       200:
- *         description: Resultado de la pelea
+ *         description: Estado actualizado de la pelea
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 personaje1:
- *                   $ref: '#/components/schemas/Personaje'
- *                 personaje2:
- *                   $ref: '#/components/schemas/Personaje'
- *                 winner:
- *                   type: string
  *                 fightId:
  *                   type: integer
- *                 history:
+ *                 personaje1:
+ *                   type: object
+ *                 personaje2:
+ *                   type: object
+ *                 historia:
  *                   type: array
  *                   items:
- *                     type: object
+ *                     type: string
  *       400:
  *         description: Datos inválidos o enfrentamiento no permitido
  *         content:
@@ -102,142 +125,135 @@ router.get('/fights', async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// POST pelea 1 vs 1
-router.post(
-  '/fights',
-  [
-    body('id1').isInt({ min: 1 }).withMessage('id1 debe ser un entero positivo mayor a 0, sin decimales'),
-    body('id2').isInt({ min: 1 }).withMessage('id2 debe ser un entero positivo mayor a 0, sin decimales'),
-    body('id1').not().isEmpty().withMessage('id1 es obligatorio'),
-    body('id2').not().isEmpty().withMessage('id2 es obligatorio')
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ error: errors.array() });
-    }
-    const { id1, id2 } = req.body;
+// POST pelea 1 vs 1 por turnos
+router.post('/fights', async (req, res) => {
+  const { fightId, id1, id2, atacanteId, defensorId, tipoAtaque } = req.body;
+  let pelea, sim1, sim2, historia, creador;
+  if (fightId) {
+    // Continuar pelea existente
+    pelea = await fightRepository.getFightById(fightId);
+    if (!pelea) return res.status(400).json({ error: 'fightId no encontrado' });
+    creador = pelea.creador;
+    // Restaurar estado
+    sim1 = Object.assign({}, pelea.personaje1);
+    sim2 = Object.assign({}, pelea.personaje2);
+    historia = pelea.historia || [];
+  } else {
+    // Nueva pelea
+    if (!id1 || !id2) return res.status(400).json({ error: 'id1 e id2 son obligatorios' });
     let personajes = await personajeService.getAllPersonajes();
     let personaje1 = personajes.find(p => p.id === parseInt(id1));
     let personaje2 = personajes.find(p => p.id === parseInt(id2));
-    if (!personaje1 || !personaje2) {
-      return res.status(400).json({ error: 'Ambos personajes deben existir' });
-    }
-    if (personaje1.tipo === personaje2.tipo) {
-      return res.status(400).json({ error: 'Solo se permiten peleas entre un superhéroe y un villano' });
-    }
-    // Clonar para simulación
-    let sim1 = Object.assign(Object.create(Object.getPrototypeOf(personaje1)), personaje1);
-    let sim2 = Object.assign(Object.create(Object.getPrototypeOf(personaje2)), personaje2);
-    sim1.vida = 100 + (sim1.nivel - 1) * 5;
-    sim2.vida = 100 + (sim2.nivel - 1) * 5;
-    let historia = [];
-    let turno = 0;
-    let ganador = null;
-    while (sim1.vida > 0 && sim2.vida > 0) {
-      let atacante, defensor, desc, esUltimate = false, ataque;
-      if (turno % 2 === 0) {
-        atacante = sim1;
-        defensor = sim2;
-      } else {
-        atacante = sim2;
-        defensor = sim1;
-      }
+    if (!personaje1 || !personaje2) return res.status(400).json({ error: 'Ambos personajes deben existir' });
+    if (personaje1.tipo === personaje2.tipo) return res.status(400).json({ error: 'Solo se permiten peleas entre un superhéroe y un villano' });
+    sim1 = { ...personaje1, vida: 100 + (personaje1.nivel - 1) * 5 };
+    sim2 = { ...personaje2, vida: 100 + (personaje2.nivel - 1) * 5 };
+    historia = [];
+    creador = req.user && req.user.name;
+  }
+  // Procesar turno
+  let atacante = sim1.id === atacanteId ? sim1 : sim2;
+  let defensor = sim1.id === defensorId ? sim1 : sim2;
+  let ataque = 0, desc = '', esUltimate = false;
+  switch (tipoAtaque) {
+    case 'basico':
+      ataque = 5 + (atacante.nivel - 1) * 1;
+      desc = `Ataque básico (${ataque} daño)`;
+      break;
+    case 'especial':
+      ataque = 30 + (atacante.nivel - 1) * 10;
+      desc = `Ataque especial (${ataque} daño)`;
+      break;
+    case 'critico':
+      let base = 5 + (atacante.nivel - 1) * 1;
+      ataque = Math.round(base * 1.5);
+      desc = `Ataque crítico (${ataque} daño)`;
+      break;
+    case 'ultimate':
       if (atacante.ultimateDisponible) {
-        ataque = atacante.usarUltimate();
+        ataque = 80 + (atacante.nivel - 1) * 10;
         desc = `¡Ultimate! (${ataque} daño, ignora escudo)`;
         esUltimate = true;
+        atacante.ultimateDisponible = false;
+        atacante.dañoUltimate = 0;
       } else {
-        const prob = Math.random();
-        if (prob < 0.4) {
-          let base = (Math.random() < 0.5) ? atacante.getAtaqueBasico() : atacante.getAtaqueEspecial();
-          ataque = atacante.getAtaqueCritico(base);
-          desc = `Ataque crítico (${ataque} daño)`;
-        } else if (prob < 0.7) {
-          ataque = atacante.getAtaqueEspecial();
-          desc = `Ataque especial (${ataque} daño)`;
-        } else {
-          ataque = atacante.getAtaqueBasico();
-          desc = `Ataque básico (${ataque} daño)`;
-        }
+        return res.status(400).json({ error: 'Ultimate no disponible' });
       }
-      let vidaAntes = defensor.vida;
-      defensor.recibirDanio(ataque, esUltimate);
-      atacante.cargarUltimate(ataque);
-      historia.push(`${atacante.nombre} ataca a ${defensor.nombre}: ${desc} (vida: ${vidaAntes.toFixed(2)} → ${defensor.vida.toFixed(2)})`);
-      turno++;
-    }
-    if (sim1.vida > 0) {
-      ganador = sim1;
-    } else {
-      ganador = sim2;
-    }
-    // Otorgar experiencia y actualizar personajes originales
-    for (let p of [personaje1, personaje2]) {
-      let sim = (p.id === sim1.id) ? sim1 : sim2;
-      if (ganador.id === p.id) {
-        sim.ganarExperiencia(40);
-      } else {
-        sim.ganarExperiencia(25);
-      }
-      p.nivel = sim.nivel;
-      p.experiencia = sim.experiencia;
-      p.escudo = sim.escudo;
-      p.vida = sim.vida;
-      p.dañoUltimate = sim.dañoUltimate;
-      p.umbralUltimate = sim.umbralUltimate;
-      p.ultimateDisponible = sim.ultimateDisponible;
-    }
-    // Guardar pelea en MongoDB
+      break;
+    default:
+      return res.status(400).json({ error: 'tipoAtaque inválido' });
+  }
+  let vidaAntes = defensor.vida;
+  if (!esUltimate && defensor.escudo > 0) {
+    const reduccion = ataque * (defensor.escudo / 100);
+    ataque = ataque - reduccion;
+  }
+  defensor.vida -= ataque;
+  if (defensor.vida < 0) defensor.vida = 0;
+  atacante.dañoUltimate = (atacante.dañoUltimate || 0) + ataque;
+  if (atacante.dañoUltimate >= (atacante.umbralUltimate || 150)) {
+    atacante.ultimateDisponible = true;
+  }
+  historia.push(`${atacante.nombre} ataca a ${defensor.nombre}: ${desc} (vida: ${vidaAntes.toFixed(2)} → ${defensor.vida.toFixed(2)})`);
+  // Guardar/actualizar pelea
+  let nuevoEstado = {
+    personaje1: sim1,
+    personaje2: sim2,
+    historia,
+    creador
+  };
+  let nuevoFightId = fightId;
+  if (!fightId) {
     const fights = await fightRepository.getFights();
-    const fightId = fights.length > 0 ? Math.max(...fights.map(f => f.fightId)) + 1 : 1;
-    await fightRepository.addFight({
-      fightId,
-      personaje1: {
-        id: sim1.id,
-        nombre: sim1.nombre,
-        tipo: sim1.tipo
-      },
-      personaje2: {
-        id: sim2.id,
-        nombre: sim2.nombre,
-        tipo: sim2.tipo
-      },
-      ganador: ganador.nombre,
-      historia
-    });
+    nuevoFightId = fights.length > 0 ? Math.max(...fights.map(f => f.fightId)) + 1 : 1;
+    await fightRepository.addFight({ fightId: nuevoFightId, ...nuevoEstado });
+  } else {
+    await fightRepository.updateFight(fightId, nuevoEstado);
+  }
+  if (sim1 && sim2) {
+    // 1 vs 1
     res.json({
-      personaje1: {
-        id: sim1.id,
-        nombre: sim1.nombre,
-        tipo: sim1.tipo,
-        nivel: sim1.nivel,
-        experiencia: sim1.experiencia,
-        escudo: sim1.escudo,
-        vida: sim1.vida,
-        ultimateDisponible: sim1.ultimateDisponible
-      },
-      personaje2: {
-        id: sim2.id,
-        nombre: sim2.nombre,
-        tipo: sim2.tipo,
-        nivel: sim2.nivel,
-        experiencia: sim2.experiencia,
-        escudo: sim2.escudo,
-        vida: sim2.vida,
-        ultimateDisponible: sim2.ultimateDisponible
-      },
-      ganador: ganador.nombre,
-      historia
+      fightId: nuevoFightId,
+      personajes: [
+        { id: sim1.id, nombre: sim1.nombre, vida: sim1.vida, ultimateDisponible: !!sim1.ultimateDisponible },
+        { id: sim2.id, nombre: sim2.nombre, vida: sim2.vida, ultimateDisponible: !!sim2.ultimateDisponible }
+      ],
+      turno: {
+        atacante: atacante.nombre,
+        defensor: defensor.nombre,
+        tipoAtaque,
+        dañoInfligido: Number((vidaAntes - defensor.vida).toFixed(2)),
+        reduccion: esUltimate ? 0 : Number(((vidaAntes - defensor.vida) - ataque).toFixed(2)),
+        vidaAntes: Number(vidaAntes.toFixed(2)),
+        vidaDespues: Number(defensor.vida.toFixed(2)),
+        descripcion: desc
+      }
+    });
+  } else {
+    // Equipos
+    res.json({
+      fightId: nuevoFightId,
+      equipoHeroes: heroes.map(h => ({ id: h.id, nombre: h.nombre, vida: simulados[h.id].vida, ultimateDisponible: !!simulados[h.id].ultimateDisponible })),
+      equipoVillanos: villanos.map(v => ({ id: v.id, nombre: v.nombre, vida: simulados[v.id].vida, ultimateDisponible: !!simulados[v.id].ultimateDisponible })),
+      turno: {
+        atacante: atacante.nombre,
+        defensor: defensor.nombre,
+        tipoAtaque,
+        dañoInfligido: Number((vidaAntes - defensor.vida).toFixed(2)),
+        reduccion: esUltimate ? 0 : Number(((vidaAntes - defensor.vida) - ataque).toFixed(2)),
+        vidaAntes: Number(vidaAntes.toFixed(2)),
+        vidaDespues: Number(defensor.vida.toFixed(2)),
+        descripcion: desc
+      }
     });
   }
-);
+});
 
 /**
  * @swagger
  * /api/fights/teams:
  *   post:
- *     summary: Iniciar una nueva pelea entre equipos de 3 superhéroes vs 3 villanos
+ *     summary: Realizar un turno en una pelea de equipos
  *     tags: [Peleas]
  *     requestBody:
  *       required: true
@@ -246,20 +262,38 @@ router.post(
  *           schema:
  *             type: object
  *             properties:
+ *               fightId:
+ *                 type: integer
+ *                 description: ID de la pelea (solo para continuar pelea, no requerido para iniciar)
  *               equipoHeroes:
  *                 type: string
- *                 description: Nombre del equipo de superhéroes (debe tener 3 miembros)
- *                 example: LIGADELJUSTICIA
+ *                 description: Nombre del equipo de superhéroes (requerido solo para iniciar pelea)
  *               equipoVillanos:
  *                 type: string
- *                 description: Nombre del equipo de villanos (debe tener 3 miembros)
- *                 example: LEGIONDELMAL
+ *                 description: Nombre del equipo de villanos (requerido solo para iniciar pelea)
+ *               atacanteId:
+ *                 type: integer
+ *                 description: ID del personaje que ataca
+ *               defensorId:
+ *                 type: integer
+ *                 description: ID del personaje que recibe el ataque
+ *               tipoAtaque:
+ *                 type: string
+ *                 enum: [basico, especial, critico, ultimate]
+ *                 description: Tipo de ataque a realizar
  *             required:
- *               - equipoHeroes
- *               - equipoVillanos
+ *               - atacanteId
+ *               - defensorId
+ *               - tipoAtaque
+ *             example:
+ *               equipoHeroes: "LIGADELJUSTICIA"
+ *               equipoVillanos: "LEGIONDELMAL"
+ *               atacanteId: 4
+ *               defensorId: 7
+ *               tipoAtaque: "basico"
  *     responses:
  *       200:
- *         description: Pelea iniciada exitosamente
+ *         description: Estado actualizado de la pelea de equipos
  *         content:
  *           application/json:
  *             schema:
@@ -267,8 +301,12 @@ router.post(
  *               properties:
  *                 fightId:
  *                   type: integer
- *                 resultado:
- *                   type: string
+ *                 heroes:
+ *                   type: array
+ *                 villanos:
+ *                   type: array
+ *                 simulados:
+ *                   type: object
  *                 rondas:
  *                   type: array
  *                   items:
@@ -281,94 +319,136 @@ router.post(
  *               $ref: '#/components/schemas/Error'
  */
 router.post('/fights/teams', async (req, res) => {
-  const { equipoHeroes, equipoVillanos } = req.body;
-  if (!equipoHeroes || !equipoVillanos) {
-    return res.status(400).json({ error: 'equipoHeroes y equipoVillanos son obligatorios' });
+  const { fightId, equipoHeroes, equipoVillanos, atacanteId, defensorId, tipoAtaque } = req.body;
+  let pelea, heroes, villanos, simulados, rondas, creador;
+  if (fightId) {
+    pelea = await fightRepository.getFightById(fightId);
+    if (!pelea) return res.status(400).json({ error: 'fightId no encontrado' });
+    heroes = pelea.heroes;
+    villanos = pelea.villanos;
+    simulados = pelea.simulados;
+    rondas = pelea.rondas || [];
+    creador = pelea.creador;
+  } else {
+    if (!equipoHeroes || !equipoVillanos) return res.status(400).json({ error: 'equipoHeroes y equipoVillanos son obligatorios' });
+    const personajes = await personajeService.getAllPersonajes();
+    heroes = personajes.filter(p => p.equipo === equipoHeroes && p.tipo === 'superheroe').slice(0, 3);
+    villanos = personajes.filter(p => p.equipo === equipoVillanos && p.tipo === 'villano').slice(0, 3);
+    if (heroes.length !== 3 || villanos.length !== 3) return res.status(400).json({ error: 'Ambos equipos deben tener exactamente 3 miembros del tipo correcto' });
+    simulados = {};
+    for (let p of [...heroes, ...villanos]) {
+      let sim = { ...p, vida: 100 + (p.nivel - 1) * 5 };
+      simulados[p.id] = sim;
+    }
+    rondas = [];
+    creador = req.user && req.user.name;
   }
-  const personajes = await personajeService.getAllPersonajes();
-  const heroes = personajes.filter(p => p.equipo === equipoHeroes && p.tipo === 'superheroe').slice(0, 3);
-  const villanos = personajes.filter(p => p.equipo === equipoVillanos && p.tipo === 'villano').slice(0, 3);
-  if (heroes.length !== 3 || villanos.length !== 3) {
-    return res.status(400).json({ error: 'Ambos equipos deben tener exactamente 3 miembros del tipo correcto' });
-  }
-  // Simulación de la primera ronda
-  let simulados = {};
-  for (let p of [...heroes, ...villanos]) {
-    simulados[p.id] = Object.assign(Object.create(Object.getPrototypeOf(p)), p);
-    simulados[p.id].vida = 100 + (simulados[p.id].nivel - 1) * 5;
-  }
-  let vivosHeroes = heroes.map(p => simulados[p.id]);
-  let vivosVillanos = villanos.map(p => simulados[p.id]);
-  let rondas = [];
-  if (vivosHeroes.length > 0 && vivosVillanos.length > 0) {
-    let heroe = vivosHeroes[0];
-    let villano = vivosVillanos[0];
-    let ronda = { ronda: 1, heroe: heroe.nombre, villano: villano.nombre, historia: [] };
-    let turno = 0;
-    while (heroe.vida > 0 && villano.vida > 0) {
-      let atacante, defensor, desc, esUltimate = false, ataque;
-      if (turno % 2 === 0) {
-        atacante = heroe;
-        defensor = villano;
-      } else {
-        atacante = villano;
-        defensor = heroe;
-      }
+  // Procesar turno
+  let atacante = simulados[atacanteId];
+  let defensor = simulados[defensorId];
+  if (!atacante || !defensor) return res.status(400).json({ error: 'atacanteId o defensorId inválido' });
+  let ataque = 0, desc = '', esUltimate = false;
+  switch (tipoAtaque) {
+    case 'basico':
+      ataque = 5 + (atacante.nivel - 1) * 1;
+      desc = `Ataque básico (${ataque} daño)`;
+      break;
+    case 'especial':
+      ataque = 30 + (atacante.nivel - 1) * 10;
+      desc = `Ataque especial (${ataque} daño)`;
+      break;
+    case 'critico':
+      let base = 5 + (atacante.nivel - 1) * 1;
+      ataque = Math.round(base * 1.5);
+      desc = `Ataque crítico (${ataque} daño)`;
+      break;
+    case 'ultimate':
       if (atacante.ultimateDisponible) {
-        ataque = atacante.usarUltimate();
+        ataque = 80 + (atacante.nivel - 1) * 10;
         desc = `¡Ultimate! (${ataque} daño, ignora escudo)`;
         esUltimate = true;
+        atacante.ultimateDisponible = false;
+        atacante.dañoUltimate = 0;
       } else {
-        const prob = Math.random();
-        if (prob < 0.4) {
-          let base = (Math.random() < 0.5) ? atacante.getAtaqueBasico() : atacante.getAtaqueEspecial();
-          ataque = atacante.getAtaqueCritico(base);
-          desc = `Ataque crítico (${ataque} daño)`;
-        } else if (prob < 0.7) {
-          ataque = atacante.getAtaqueEspecial();
-          desc = `Ataque especial (${ataque} daño)`;
-        } else {
-          ataque = atacante.getAtaqueBasico();
-          desc = `Ataque básico (${ataque} daño)`;
-        }
+        return res.status(400).json({ error: 'Ultimate no disponible' });
       }
-      let vidaAntes = defensor.vida;
-      defensor.recibirDanio(ataque, esUltimate);
-      atacante.cargarUltimate(ataque);
-      ronda.historia.push(`${atacante.nombre} ataca a ${defensor.nombre}: ${desc} (vida: ${vidaAntes.toFixed(2)} → ${defensor.vida.toFixed(2)})`);
-      turno++;
-    }
-    if (heroe.vida <= 0) {
-      ronda.resultado = `${villano.nombre} gana la ronda`;
-      vivosHeroes.shift();
-    } else {
-      ronda.resultado = `${heroe.nombre} gana la ronda`;
-      vivosVillanos.shift();
-    }
-    rondas.push(ronda);
+      break;
+    default:
+      return res.status(400).json({ error: 'tipoAtaque inválido' });
   }
-  let resultado;
-  if (vivosHeroes.length > 0 && vivosVillanos.length === 0) resultado = '¡Ganan los superhéroes!';
-  else if (vivosVillanos.length > 0 && vivosHeroes.length === 0) resultado = '¡Ganan los villanos!';
-  else resultado = 'Pelea inconclusa';
-  // Guardar pelea en MongoDB
-  const fights = await fightRepository.getFights();
-  const fightId = fights.length > 0 ? Math.max(...fights.map(f => f.fightId)) + 1 : 1;
-  await fightRepository.addFight({
-    fightId,
-    equipoHeroes: heroes.map(h => h.nombre),
-    equipoVillanos: villanos.map(v => v.nombre),
-    resultado,
-    rondas
-  });
-  res.json({ fightId, resultado, rondas });
+  let vidaAntes = defensor.vida;
+  if (!esUltimate && defensor.escudo > 0) {
+    const reduccion = ataque * (defensor.escudo / 100);
+    ataque = ataque - reduccion;
+  }
+  defensor.vida -= ataque;
+  if (defensor.vida < 0) defensor.vida = 0;
+  atacante.dañoUltimate = (atacante.dañoUltimate || 0) + ataque;
+  if (atacante.dañoUltimate >= (atacante.umbralUltimate || 150)) {
+    atacante.ultimateDisponible = true;
+  }
+  let ronda = { atacante: atacante.nombre, defensor: defensor.nombre, desc, vidaAntes, vidaDespues: defensor.vida };
+  rondas.push(ronda);
+  // Guardar/actualizar pelea
+  let nuevoEstado = {
+    heroes,
+    villanos,
+    simulados,
+    rondas,
+    creador
+  };
+  let nuevoFightId = fightId;
+  if (!fightId) {
+    const fights = await fightRepository.getFights();
+    nuevoFightId = fights.length > 0 ? Math.max(...fights.map(f => f.fightId)) + 1 : 1;
+    await fightRepository.addFight({ fightId: nuevoFightId, ...nuevoEstado });
+  } else {
+    await fightRepository.updateFight(fightId, nuevoEstado);
+  }
+  // Unificar la respuesta para ambos casos (1vs1 y equipos)
+  const esPeleaEquipos = Array.isArray(heroes) && Array.isArray(villanos);
+  if (esPeleaEquipos) {
+    res.json({
+      fightId: nuevoFightId,
+      equipoHeroes: heroes.map(h => ({ id: h.id, nombre: h.nombre, vida: simulados[h.id].vida, ultimateDisponible: !!simulados[h.id].ultimateDisponible })),
+      equipoVillanos: villanos.map(v => ({ id: v.id, nombre: v.nombre, vida: simulados[v.id].vida, ultimateDisponible: !!simulados[v.id].ultimateDisponible })),
+      turno: {
+        atacante: atacante.nombre,
+        defensor: defensor.nombre,
+        tipoAtaque,
+        dañoInfligido: Number((vidaAntes - defensor.vida).toFixed(2)),
+        reduccion: esUltimate ? 0 : Number(((vidaAntes - defensor.vida) - ataque).toFixed(2)),
+        vidaAntes: Number(vidaAntes.toFixed(2)),
+        vidaDespues: Number(defensor.vida.toFixed(2)),
+        descripcion: desc
+      }
+    });
+  } else {
+    res.json({
+      fightId: nuevoFightId,
+      personajes: [
+        { id: sim1.id, nombre: sim1.nombre, vida: sim1.vida, ultimateDisponible: !!sim1.ultimateDisponible },
+        { id: sim2.id, nombre: sim2.nombre, vida: sim2.vida, ultimateDisponible: !!sim2.ultimateDisponible }
+      ],
+      turno: {
+        atacante: atacante.nombre,
+        defensor: defensor.nombre,
+        tipoAtaque,
+        dañoInfligido: Number((vidaAntes - defensor.vida).toFixed(2)),
+        reduccion: esUltimate ? 0 : Number(((vidaAntes - defensor.vida) - ataque).toFixed(2)),
+        vidaAntes: Number(vidaAntes.toFixed(2)),
+        vidaDespues: Number(defensor.vida.toFixed(2)),
+        descripcion: desc
+      }
+    });
+  }
 });
 
 /**
  * @swagger
  * /api/fights/teams/continue:
  *   post:
- *     summary: Continuar una pelea de equipos existente usando el fightId
+ *     summary: Realizar un turno en la continuación de una pelea de equipos
  *     tags: [Peleas]
  *     requestBody:
  *       required: true
@@ -379,18 +459,30 @@ router.post('/fights/teams', async (req, res) => {
  *             properties:
  *               fightId:
  *                 type: integer
- *                 description: ID de la pelea a continuar
- *               rondas:
- *                 type: array
- *                 description: Rondas adicionales a simular
- *                 items:
- *                   type: object
+ *                 description: ID de la pelea a continuar (obligatorio)
+ *               atacanteId:
+ *                 type: integer
+ *                 description: ID del personaje que ataca
+ *               defensorId:
+ *                 type: integer
+ *                 description: ID del personaje que recibe el ataque
+ *               tipoAtaque:
+ *                 type: string
+ *                 enum: [basico, especial, critico, ultimate]
+ *                 description: Tipo de ataque a realizar
  *             required:
  *               - fightId
- *               - rondas
+ *               - atacanteId
+ *               - defensorId
+ *               - tipoAtaque
+ *             example:
+ *               fightId: 5
+ *               atacanteId: 7
+ *               defensorId: 4
+ *               tipoAtaque: "especial"
  *     responses:
  *       200:
- *         description: Resultado actualizado de la pelea por equipos
+ *         description: Estado actualizado de la pelea de equipos
  *         content:
  *           application/json:
  *             schema:
@@ -398,8 +490,12 @@ router.post('/fights/teams', async (req, res) => {
  *               properties:
  *                 fightId:
  *                   type: integer
- *                 resultado:
- *                   type: string
+ *                 heroes:
+ *                   type: array
+ *                 villanos:
+ *                   type: array
+ *                 simulados:
+ *                   type: object
  *                 rondas:
  *                   type: array
  *                   items:
@@ -412,85 +508,9 @@ router.post('/fights/teams', async (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 router.post('/fights/teams/continue', async (req, res) => {
-  const { fightId, rondas } = req.body;
-  if (!fightId || !Array.isArray(rondas) || rondas.length === 0) {
-    return res.status(400).json({ error: 'fightId y rondas son obligatorios' });
-  }
-  const fight = await fightRepository.getFightById(fightId);
-  if (!fight) {
-    return res.status(400).json({ error: 'fightId no encontrado' });
-  }
-  // Recuperar los equipos y estado actual
-  let equipoHeroes = fight.equipoHeroes;
-  let equipoVillanos = fight.equipoVillanos;
-  const personajes = await personajeService.getAllPersonajes();
-  let heroes = personajes.filter(p => equipoHeroes.includes(p.nombre) && p.tipo === 'superheroe').slice(0, 3);
-  let villanos = personajes.filter(p => equipoVillanos.includes(p.nombre) && p.tipo === 'villano').slice(0, 3);
-  // Simular las rondas adicionales
-  let simulados = {};
-  for (let p of [...heroes, ...villanos]) {
-    simulados[p.id] = Object.assign(Object.create(Object.getPrototypeOf(p)), p);
-    simulados[p.id].vida = 100 + (simulados[p.id].nivel - 1) * 5;
-  }
-  let vivosHeroes = heroes.map(p => simulados[p.id]);
-  let vivosVillanos = villanos.map(p => simulados[p.id]);
-  let historial = fight.rondas || [];
-  let rondaNum = historial.length + 1;
-  for (const round of rondas) {
-    if (vivosHeroes.length === 0 || vivosVillanos.length === 0) break;
-    let heroe = vivosHeroes[0];
-    let villano = vivosVillanos[0];
-    let ronda = { ronda: rondaNum, heroe: heroe.nombre, villano: villano.nombre, historia: [] };
-    let turno = 0;
-    while (heroe.vida > 0 && villano.vida > 0) {
-      let atacante, defensor, desc, esUltimate = false, ataque;
-      if (turno % 2 === 0) {
-        atacante = heroe;
-        defensor = villano;
-      } else {
-        atacante = villano;
-        defensor = heroe;
-      }
-      if (atacante.ultimateDisponible) {
-        ataque = atacante.usarUltimate();
-        desc = `¡Ultimate! (${ataque} daño, ignora escudo)`;
-        esUltimate = true;
-      } else {
-        const prob = Math.random();
-        if (prob < 0.4) {
-          let base = (Math.random() < 0.5) ? atacante.getAtaqueBasico() : atacante.getAtaqueEspecial();
-          ataque = atacante.getAtaqueCritico(base);
-          desc = `Ataque crítico (${ataque} daño)`;
-        } else if (prob < 0.7) {
-          ataque = atacante.getAtaqueEspecial();
-          desc = `Ataque especial (${ataque} daño)`;
-        } else {
-          ataque = atacante.getAtaqueBasico();
-          desc = `Ataque básico (${ataque} daño)`;
-        }
-      }
-      let vidaAntes = defensor.vida;
-      defensor.recibirDanio(ataque, esUltimate);
-      atacante.cargarUltimate(ataque);
-      ronda.historia.push(`${atacante.nombre} ataca a ${defensor.nombre}: ${desc} (vida: ${vidaAntes.toFixed(2)} → ${defensor.vida.toFixed(2)})`);
-      turno++;
-    }
-    if (heroe.vida <= 0) {
-      ronda.resultado = `${villano.nombre} gana la ronda`;
-      vivosHeroes.shift();
-    } else {
-      ronda.resultado = `${heroe.nombre} gana la ronda`;
-      vivosVillanos.shift();
-    }
-    historial.push(ronda);
-    rondaNum++;
-  }
-  let resultado;
-  if (vivosHeroes.length > 0 && vivosVillanos.length === 0) resultado = '¡Ganan los superhéroes!';
-  else if (vivosVillanos.length > 0 && vivosHeroes.length === 0) resultado = '¡Ganan los villanos!';
-  else resultado = 'Pelea inconclusa';
-  await fightRepository.updateFight(fightId, { ...fight, resultado, rondas: historial });
-  res.json({ fightId, resultado, rondas: historial });
+  // Reutiliza la lógica de /fights/teams
+  req.url = '/fights/teams';
+  router.handle(req, res);
 });
 
 /**
@@ -550,7 +570,8 @@ router.post('/fights/teams/continue', async (req, res) => {
 router.get('/fights/teams', async (req, res) => {
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
-  const fights = await fightRepository.getFights();
+  const creador = req.user && req.user.name;
+  const fights = await fightRepository.getFights(creador);
   const teamFights = fights.filter(f => f.equipoHeroes && f.equipoVillanos);
   const total = teamFights.length;
   const totalPages = Math.ceil(total / limit);

@@ -1,8 +1,9 @@
 import { connectDB } from '../data/mongoClient.js';
 
-async function getFights() {
+async function getFights(creador) {
     const db = await connectDB();
-    return db.collection('fights').find({}).toArray();
+    const filtro = creador ? { creador } : {};
+    return db.collection('fights').find(filtro).toArray();
 }
 
 async function getFightById(fightId) {
