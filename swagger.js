@@ -14,6 +14,10 @@ const options = {
     },
     servers: [
       {
+        url: 'https://hsv.onrender.com',
+        description: 'Servidor en Render (producción)'
+      },
+      {
         url: 'http://localhost:3000',
         description: 'Servidor de desarrollo'
       }
