@@ -17,7 +17,10 @@ dotenv.config();
 
 const app = express()
 app.use(cors({
-  origin: '*',
+  origin: [
+    'https://hvsv.onrender.com',
+    'https://hsv.onrender.com'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false
