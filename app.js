@@ -34,8 +34,13 @@ app.use('/api', userController)
 
 // Middleware de autenticación JWT (debe ir antes de las rutas protegidas)
 function authenticateJWT(req, res, next) {
-  if (req.path === '/api/login' || req.path === '/api/users' || req.path.startsWith('/api-docs')) {
-    return next()
+  if (
+    req.path === '/' ||
+    req.path === '/api/login' ||
+    req.path === '/api/users' ||
+    req.path.startsWith('/api-docs')
+  ) {
+    return next();
   }
   const authHeader = req.headers.authorization
   if (authHeader && authHeader.startsWith('Bearer ')) {
