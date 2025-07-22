@@ -89,8 +89,16 @@ app.get('/', (req, res) => {
   })
 })
 
+// Middleware para rutas /api no encontradas que devuelva JSON
+app.use((req, res, next) => {
+  if (req.originalUrl.startsWith('/api')) {
+    return res.status(404).json({ error: 'Endpoint no encontrado' });
+  }
+  next();
+});
+
 const PORT = 3000
 app.listen(PORT, _ => {
-    console.log(`Servidor corriendo en el puerto ${PORT}`)
-    console.log(`📚 Documentación Swagger: http://localhost:${PORT}/api-docs`)
+  console.log(`Servidor corriendo en el puerto ${PORT}`)
+  console.log(`📚 Documentación Swagger: http://localhost:${PORT}/api-docs`)
 })
