@@ -8,9 +8,10 @@ async function addPersonaje(personaje) {
     if (!personaje.nombre || !personaje.tipo) {
         throw new Error("El personaje debe tener un nombre y un tipo.");
     }
-    // Obtener el mayor id actual para asignar uno nuevo
+    // Obtener el mayor id actual para asignar uno nuevo (solo ids numéricos)
     const personajes = await personajeRepository.getPersonajes();
-    const newId = personajes.length > 0 ? Math.max(...personajes.map(p => p.id)) + 1 : 1;
+    const ids = personajes.map(p => Number(p.id)).filter(id => !isNaN(id));
+    const newId = ids.length > 0 ? Math.max(...ids) + 1 : 1;
     const newPersonaje = { ...personaje, id: newId };
     await personajeRepository.addPersonaje(newPersonaje);
     return newPersonaje;

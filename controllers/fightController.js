@@ -513,73 +513,7 @@ router.post('/fights/teams/continue', async (req, res) => {
   router.handle(req, res);
 });
 
-/**
- * @swagger
- * /api/fights/teams:
- *   get:
- *     summary: Obtener todas las peleas en equipo (paginado)
- *     tags: [Peleas]
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Número de página
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Cantidad de peleas por página
- *     responses:
- *       200:
- *         description: Lista paginada de peleas en equipo
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 total:
- *                   type: integer
- *                 totalPages:
- *                   type: integer
- *                 page:
- *                   type: integer
- *                 fights:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       equipoHeroes:
- *                         type: array
- *                         items:
- *                           type: string
- *                       equipoVillanos:
- *                         type: array
- *                         items:
- *                           type: string
- *                       resultado:
- *                         type: string
- *                       historial:
- *                         type: array
- *                         items:
- *                           type: object
- */
-// GET para peleas en equipo con paginación
-router.get('/fights/teams', async (req, res) => {
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 10;
-  const creador = req.user && req.user.name;
-  const fights = await fightRepository.getFights(creador);
-  const teamFights = fights.filter(f => f.equipoHeroes && f.equipoVillanos);
-  const total = teamFights.length;
-  const totalPages = Math.ceil(total / limit);
-  const start = (page - 1) * limit;
-  const end = start + limit;
-  const fightsPage = teamFights.slice(start, end);
-  res.json({ total, totalPages, page, fights: fightsPage });
-});
+// ...existing code...
 
 // Función para calcular el tipo de ataque
 function calcularAtaque() {
@@ -597,59 +531,7 @@ function descripcionAtaque(valor) {
 
 /**
  * @swagger
- * /api/fights/{fightId}:
- *   put:
- *     summary: Actualizar el ganador de una pelea
- *     tags: [Peleas]
- *     parameters:
- *       - in: path
- *         name: fightId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID de la pelea a actualizar
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               winner:
- *                 type: string
- *                 description: Nombre del nuevo ganador
- *     responses:
- *       200:
- *         description: Pelea actualizada exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 fight:
- *                   type: object
- *       404:
- *         description: Pelea no encontrada
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-// PUT para actualizar el ganador de una pelea
-router.put('/fights/:fightId', async (req, res) => {
-  const fightId = parseInt(req.params.fightId, 10);
-  const { winner } = req.body;
-  if (!winner) {
-    return res.status(400).json({ error: 'El nombre del ganador es obligatorio' });
-  }
-  const fight = await fightRepository.getFightById(fightId);
-  if (!fight) {
-    return res.status(404).json({ error: 'Pelea no encontrada' });
-  }
-  await fightRepository.updateFight(fightId, { ...fight, winner });
-  const updated = await fightRepository.getFightById(fightId);
-  res.json({ fight: updated });
-});
+// ...existing code...
 
 /**
  * @swagger
