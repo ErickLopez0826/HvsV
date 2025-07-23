@@ -157,6 +157,10 @@ router.post("/personajes",
         if(!errors.isEmpty()){
             return res.status(400).json({ errors: errors.array() });
         }
+        // Solo el usuario admin puede crear personajes
+        if (!req.user || req.user.name !== 'admin') {
+            return res.status(403).json({ error: 'Solo el usuario admin puede crear personajes.' });
+        }
         try {
             const { nombre, ciudad, tipo } = req.body;
             const nuevo = { nombre, ciudad, tipo };
@@ -165,7 +169,8 @@ router.post("/personajes",
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
-});
+    }
+);
 
 /**
  * @swagger
