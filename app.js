@@ -13,6 +13,7 @@ import cors from 'cors'
 import mongoose from 'mongoose';
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
+import { displayServerInfo } from './server-info.js';
 dotenv.config();
 
 const app = express()
@@ -35,16 +36,9 @@ app.use('/api', authController)
 // Endpoint de registro de usuario (antes del middleware de autenticación)
 app.use('/api', userController)
 
-// Middleware de autenticación JWT (debe ir antes de las rutas protegidas)
+// Middleware de autenticación JWT (solo para rutas protegidas)
 function authenticateJWT(req, res, next) {
-  if (
-    req.path === '/' ||
-    req.path === '/api/login' ||
-    req.path === '/api/users' ||
-    req.path.startsWith('/api-docs')
-  ) {
-    return next();
-  }
+  // Verificar token para rutas protegidas
   const authHeader = req.headers.authorization
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1]
@@ -59,12 +53,11 @@ function authenticateJWT(req, res, next) {
     res.status(401).json({ error: 'Token no proporcionado' })
   }
 }
-app.use(authenticateJWT)
 
-// Endpoints protegidos
-app.use('/api', fightController)
-app.use('/api', heroController)
-app.use('/api/equipos', teamController)
+// Endpoints protegidos (requieren autenticación)
+app.use('/api', authenticateJWT, fightController)
+app.use('/api', authenticateJWT, heroController)
+app.use('/api/equipos', authenticateJWT, teamController)
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -72,12 +65,34 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customSiteTitle: 'API de Personajes - Documentación'
 }))
 
+// Servir archivos estáticos desde la carpeta public
+app.use(express.static('public'))
+
+// Ruta específica para el dashboard
+app.get('/dashboard', (req, res) => {
+  res.sendFile('html/index.html', { root: 'public' })
+})
+
+// Ruta específica para el login
+app.get('/login', (req, res) => {
+  res.sendFile('html/index.html', { root: 'public' })
+})
+
+// Ruta específica para el menú
+app.get('/menu', (req, res) => {
+  res.sendFile('html/menu.html', { root: 'public' })
+})
+
 // Ruta de bienvenida
-const BASE_URL = process.env.BASE_URL || 'https://hvsv.onrender.com';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 app.get('/', (req, res) => {
   res.json({
-    message: 'API de Personajes funcionando correctamente',
+    message: '🎮 API de Héroes vs Villanos funcionando correctamente',
     documentation: `${BASE_URL}/api-docs/`,
+    frontend: {
+      login: `${BASE_URL}/html/index.html`,
+      dashboard: `${BASE_URL}/html/index.html#dashboard`
+    },
     endpoints: {
       users: `${BASE_URL}/api/users`,
       personajes: `${BASE_URL}/api/personajes`,
@@ -97,8 +112,50 @@ app.use((req, res, next) => {
   next();
 });
 
-const PORT = 3000
+const PORT = process.env.PORT || 8080
 app.listen(PORT, _ => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`)
-  console.log(`📚 Documentación Swagger: http://localhost:${PORT}/api-docs`)
+  console.log("\n" + "=".repeat(70));
+  console.log("🎮 HÉROES VS VILLANOS - SERVIDOR INICIADO");
+  console.log("=".repeat(70));
+  
+  console.log(`\n📋 Información del Servidor:`);
+  console.log(`   🏷️  Nombre: Héroes vs Villanos - API & Frontend`);
+  console.log(`   📦 Versión: 1.0.0`);
+  console.log(`   🌐 Puerto: ${PORT}`);
+  console.log(`   🔗 URL Base: http://localhost:${PORT}`);
+  
+  console.log(`\n🎮 INTERFAZ WEB - DIRECCIONES DIRECTAS:`);
+  console.log(`   🔐 Inicio de sesión: http://localhost:${PORT}/login`);
+  console.log(`   📝 Crear cuenta: http://localhost:${PORT}/html/index.html`);
+  console.log(`   🎯 Dashboard del juego: http://localhost:${PORT}/dashboard`);
+  console.log(`   🎮 Menú principal: http://localhost:${PORT}/menu`);
+  console.log(`   🏠 Página principal: http://localhost:${PORT}/html/index.html`);
+  
+  console.log(`\n📚 DOCUMENTACIÓN:`);
+  console.log(`   📖 Swagger UI: http://localhost:${PORT}/api-docs`);
+  console.log(`   🔗 API Base: http://localhost:${PORT}/api`);
+  
+  console.log(`\n⚡ ENDPOINTS API DISPONIBLES:`);
+  console.log(`   🔑 Login: POST http://localhost:${PORT}/api/login`);
+  console.log(`   👤 Registro: POST http://localhost:${PORT}/api/users`);
+  console.log(`   👥 Usuarios: GET http://localhost:${PORT}/api/users`);
+  console.log(`   ⚔️ Personajes: GET http://localhost:${PORT}/api/personajes`);
+  console.log(`   🥊 Peleas: GET http://localhost:${PORT}/api/fights`);
+  console.log(`   👥 Equipos: GET http://localhost:${PORT}/api/equipos`);
+  
+  console.log(`\n✨ CARACTERÍSTICAS:`);
+  console.log(`   ✅ CORS habilitado para desarrollo local`);
+  console.log(`   ✅ Archivos estáticos servidos desde /public`);
+  console.log(`   ✅ Autenticación con JWT`);
+  console.log(`   ✅ Documentación automática con Swagger`);
+  console.log(`   ✅ Interfaz web responsive`);
+  console.log(`   ✅ Animaciones y efectos visuales`);
+  
+  console.log("\n" + "=".repeat(70));
+  console.log("🚀 ¡Servidor listo para usar!");
+  console.log("=".repeat(70));
+  console.log("\n💡 TIP: Abre tu navegador y ve a:");
+  console.log(`   🌐 http://localhost:${PORT}/login - Para iniciar sesión`);
+  console.log(`   🎯 http://localhost:${PORT}/dashboard - Para ir al dashboard`);
+  console.log("\n" + "=".repeat(70) + "\n");
 })

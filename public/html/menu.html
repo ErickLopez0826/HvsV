@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Principal - Héroes vs Villanos</title>
+    
+    <!-- Fuentes de Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/menu.css">
+</head>
+<body>
+    <!-- Header con saludo -->
+    <header class="menu-header">
+        <div class="header-content">
+            <h1 class="welcome-title">¡Bienvenido, <span id="user-name">Usuario</span>!</h1>
+            <button id="logout-btn" class="btn btn-secondary">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <!-- Contenedor principal -->
+    <main class="menu-container">
+        <!-- Patrón de fondo sutil -->
+        <div class="background-pattern"></div>
+        
+        <!-- Contenedor de tarjetas -->
+        <div class="cards-container">
+            <!-- Tarjeta 1: Crear Equipo -->
+            <div class="game-card" id="create-team-card">
+                <div class="card-icon">
+                    <div class="icon-placeholder">👥</div>
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">Crear Equipo</h2>
+                    <p class="card-description">Forma tu equipo de héroes y villanos para la batalla</p>
+                    <button class="btn btn-primary card-action" onclick="navigateTo('create-team')">
+                        Crear Equipo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tarjeta 2: Pelea 1 vs 1 -->
+            <div class="game-card" id="fight-1v1-card">
+                <div class="card-icon">
+                    <div class="icon-placeholder">⚔️</div>
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">Pelea 1 vs 1</h2>
+                    <p class="card-description">Batalla individual entre dos personajes</p>
+                    <button class="btn btn-primary card-action" onclick="navigateTo('fight-1v1')">
+                        Pelea 1 vs 1
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tarjeta 3: Pelea 3 vs 3 -->
+            <div class="game-card" id="fight-3v3-card">
+                <div class="card-icon">
+                    <div class="icon-placeholder">🎯</div>
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">Pelea 3 vs 3</h2>
+                    <p class="card-description">Batalla en equipo de 3 contra 3</p>
+                    <button class="btn btn-primary card-action" onclick="navigateTo('fight-3v3')">
+                        Pelea 3 vs 3
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="../js/menu.js"></script>
+</body>
+</html> 

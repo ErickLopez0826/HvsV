@@ -1,0 +1,134 @@
+/* ===== LOGIN SPECIFIC STYLES ===== */
+
+.login-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.login-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(255, 156, 0, 0.1) 50%, 
+        transparent 70%);
+    animation: shimmer 3s infinite;
+    pointer-events: none;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+}
+
+/* Efectos especiales para el formulario de login */
+#login-form {
+    position: relative;
+    z-index: 2;
+}
+
+#login-form .input-group {
+    position: relative;
+}
+
+#login-form .input-group input {
+    background: rgba(74, 79, 85, 0.8);
+    backdrop-filter: blur(10px);
+    border: 2px solid transparent;
+    transition: all var(--transition-fast);
+}
+
+#login-form .input-group input:focus {
+    background: rgba(74, 79, 85, 0.9);
+    border-color: var(--btn-primary);
+    box-shadow: 0 0 0 3px rgba(255, 156, 0, 0.2);
+}
+
+/* Botón de login con efecto especial */
+#login-form .btn-primary {
+    background: linear-gradient(135deg, var(--btn-primary), var(--btn-primary-hover));
+    position: relative;
+    overflow: hidden;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+#login-form .btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.3), 
+        transparent);
+    transition: left 0.5s ease;
+}
+
+#login-form .btn-primary:hover::after {
+    left: 100%;
+}
+
+/* Enlace de registro */
+#show-register {
+    color: var(--btn-secondary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+#show-register::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--btn-secondary);
+    transition: width var(--transition-fast);
+}
+
+#show-register:hover::after {
+    width: 100%;
+}
+
+/* Animación de entrada para el login */
+.login-card {
+    animation: slideInFromLeft 0.6s ease-out;
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Responsive específico para login */
+@media (max-width: 480px) {
+    .login-card {
+        margin: 1rem;
+        padding: 2rem;
+    }
+    
+    #login-form .btn-primary {
+        padding: 1rem 1.5rem;
+        font-size: 0.9rem;
+    }
+} 
