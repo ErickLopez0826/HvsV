@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Principal - Héroes vs Villanos</title>
+    
+    <!-- Fuentes de Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/menu.css">
+</head>
+<body>
+    <!-- Video de fondo -->
+    <div class="background-video">
+        <video autoplay muted loop playsinline>
+            <source src="../images/Videos/menu-bg.webm" type="video/webm">
+            Tu navegador no soporta el elemento video.
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+
+    <!-- Header con saludo -->
+    <header class="menu-header">
+        <div class="header-content">
+            <h1 class="welcome-title">¡Bienvenido, <span id="user-name">Usuario</span>!</h1>
+            <button id="logout-btn" class="btn btn-secondary">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <!-- Contenedor principal -->
+    <main class="menu-container">
+        <!-- Contenedor de opciones verticales -->
+        <div class="menu-options">
+            <!-- Opción 1: Crear Equipo -->
+            <div class="menu-option" id="create-team-option">
+                <div class="option-icon">
+                    <div class="icon-placeholder">👥</div>
+                </div>
+                <div class="option-content">
+                    <h2 class="option-title">Crear Equipo</h2>
+                    <p class="option-description">Forma tu equipo de Overwatch y Blackwatch para la batalla</p>
+                    <button class="btn btn-primary option-action" onclick="navigateTo('create-team')">
+                        Crear Equipo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Opción 2: Pelea 1 vs 1 -->
+            <div class="menu-option" id="fight-1v1-option">
+                <div class="option-icon">
+                    <div class="icon-placeholder">⚔️</div>
+                </div>
+                <div class="option-content">
+                    <h2 class="option-title">Pelea 1 vs 1</h2>
+                    <p class="option-description">Batalla individual entre dos personajes</p>
+                    <button class="btn btn-primary option-action" onclick="navigateTo('fight-1v1')">
+                        Pelea 1 vs 1
+                    </button>
+                </div>
+            </div>
+
+            <!-- Opción 3: Pelea de Equipos -->
+            <div class="menu-option" id="fight-teams-option">
+                <div class="option-icon">
+                    <div class="icon-placeholder">🎯</div>
+                </div>
+                <div class="option-content">
+                    <h2 class="option-title">Pelea de Equipos</h2>
+                    <p class="option-description">Batalla de equipos de 3 contra 3</p>
+                    <button class="btn btn-primary option-action" onclick="navigateTo('fight-teams')">
+                        Pelea de Equipos
+                    </button>
+                </div>
+            </div>
+        </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="../js/menu.js"></script>
+</body>
+</html> 

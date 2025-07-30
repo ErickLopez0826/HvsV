@@ -331,10 +331,24 @@ router.post('/fights/teams', async (req, res) => {
     creador = pelea.creador;
   } else {
     if (!equipoHeroes || !equipoVillanos) return res.status(400).json({ error: 'equipoHeroes y equipoVillanos son obligatorios' });
+    
+    // Intentar buscar equipos en la base de datos primero
     const personajes = await personajeService.getAllPersonajes();
     heroes = personajes.filter(p => p.equipo === equipoHeroes && p.tipo === 'superheroe').slice(0, 3);
     villanos = personajes.filter(p => p.equipo === equipoVillanos && p.tipo === 'villano').slice(0, 3);
-    if (heroes.length !== 3 || villanos.length !== 3) return res.status(400).json({ error: 'Ambos equipos deben tener exactamente 3 miembros del tipo correcto' });
+    
+    // Si no se encuentran equipos en la base de datos, usar equipos aleatorios
+    if (heroes.length === 0) {
+      heroes = personajes.filter(p => p.tipo === 'superheroe').slice(0, 3);
+    }
+    if (villanos.length === 0) {
+      villanos = personajes.filter(p => p.tipo === 'villano').slice(0, 3);
+    }
+    
+    if (heroes.length !== 3 || villanos.length !== 3) {
+      return res.status(400).json({ error: 'No se pudieron formar equipos válidos. Se requieren 3 superhéroes y 3 villanos.' });
+    }
+    
     simulados = {};
     for (let p of [...heroes, ...villanos]) {
       let sim = { ...p, vida: 100 + (p.nivel - 1) * 5 };

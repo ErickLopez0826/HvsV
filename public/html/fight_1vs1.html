@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pelea 1 vs 1 - Héroes vs Villanos</title>
+    <link rel="stylesheet" href="../css/fight_1vs1.css">
+</head>
+<body>
+    <!-- Header con navegación -->
+    <header class="fight-header">
+        <div class="header-content">
+            <h1>⚔️ Pelea 1 vs 1</h1>
+            <button class="btn btn-secondary" onclick="window.location.href='/menu'">
+                🏠 Volver al Menú
+            </button>
+        </div>
+    </header>
+
+    <!-- Contenedor principal -->
+    <main class="fight-container">
+        <!-- Fase 1: Selección de personajes -->
+        <div id="selection-phase" class="fight-phase">
+            <div class="phase-title">
+                <h2>🎯 Selecciona tu personaje</h2>
+                <p>Elige tu personaje y luego selecciona tu oponente</p>
+            </div>
+
+            <!-- Selección del jugador -->
+            <div class="player-selection">
+                <h3>👤 Tu Personaje</h3>
+                <div class="character-grid" id="player-characters">
+                    <!-- Todos los personajes se cargarán dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Selección del oponente -->
+            <div class="opponent-selection">
+                <h3>🤖 Oponente</h3>
+                <div class="character-grid" id="opponent-characters">
+                    <!-- Los oponentes se cargarán dinámicamente según la selección -->
+                </div>
+            </div>
+
+            <!-- Botón para iniciar pelea -->
+            <div class="fight-actions">
+                <button id="start-fight-btn" class="btn btn-primary" disabled>
+                    ⚔️ Iniciar Pelea
+                </button>
+            </div>
+        </div>
+
+        <!-- Fase 2: Área de combate -->
+        <div id="combat-phase" class="fight-phase hidden">
+            <div class="phase-title">
+                <h2>⚔️ Área de Combate</h2>
+                <p>La batalla ha comenzado</p>
+            </div>
+
+            <!-- Resumen de la pelea -->
+            <div class="fight-summary">
+                <div class="fighter player-fighter">
+                    <div class="fighter-avatar" id="player-avatar">👤</div>
+                    <div class="fighter-info">
+                        <h3 id="player-name">Tu Personaje</h3>
+                        <div class="fighter-stats">
+                            <div class="stat">
+                                <span class="stat-label">Nivel:</span>
+                                <span class="stat-value" id="player-level">1</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Vida:</span>
+                                <span class="stat-value" id="player-hp">100</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Experiencia:</span>
+                                <span class="stat-value" id="player-exp">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Escudo:</span>
+                                <span class="stat-value" id="player-shield">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Fuerza:</span>
+                                <span class="stat-value" id="player-strength">50</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Daño Ultimate:</span>
+                                <span class="stat-value" id="player-ultimate-damage">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Umbral Ultimate:</span>
+                                <span class="stat-value" id="player-ultimate-threshold">150</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vs-indicator">
+                    <span>VS</span>
+                </div>
+
+                <div class="fighter opponent-fighter">
+                    <div class="fighter-avatar" id="opponent-avatar">🤖</div>
+                    <div class="fighter-info">
+                        <h3 id="opponent-name">Oponente</h3>
+                        <div class="fighter-stats">
+                            <div class="stat">
+                                <span class="stat-label">Nivel:</span>
+                                <span class="stat-value" id="opponent-level">1</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Vida:</span>
+                                <span class="stat-value" id="opponent-hp">100</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Experiencia:</span>
+                                <span class="stat-value" id="opponent-exp">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Escudo:</span>
+                                <span class="stat-value" id="opponent-shield">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Fuerza:</span>
+                                <span class="stat-value" id="opponent-strength">50</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Daño Ultimate:</span>
+                                <span class="stat-value" id="opponent-ultimate-damage">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Umbral Ultimate:</span>
+                                <span class="stat-value" id="opponent-ultimate-threshold">150</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones de combate -->
+            <div class="combat-actions">
+                <button id="attack-btn" class="btn btn-primary">
+                    ⚔️ Atacar
+                </button>
+                <button id="special-btn" class="btn btn-secondary">
+                    🔥 Habilidad Especial
+                </button>
+                <button id="defend-btn" class="btn btn-secondary">
+                    🛡️ Defender
+                </button>
+            </div>
+
+            <!-- Log de combate -->
+            <div class="combat-log">
+                <h3>📜 Historial de Combate</h3>
+                <div id="combat-messages" class="log-messages">
+                    <div class="log-message">La batalla ha comenzado...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de confirmación -->
+    <div id="confirm-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>⚔️ Confirmar Pelea</h3>
+            <div id="fight-summary">
+                <!-- Resumen de la pelea -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="fight1vs1App.cancelFight()">
+                    ❌ Cancelar
+                </button>
+                <button class="btn btn-primary" onclick="fight1vs1App.confirmFight()">
+                    ⚔️ Confirmar Pelea
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de resultado -->
+    <div id="result-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="result-title">🏆 Resultado</h3>
+            <div id="result-content">
+                <!-- Contenido del resultado -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="fight1vs1App.newFight()">
+                    🎮 Nueva Pelea
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='/menu'">
+                    🏠 Volver al Menú
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/fight_1vs1.js"></script>
+</body>
+</html> 

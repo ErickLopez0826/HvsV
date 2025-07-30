@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Equipo - Héroes vs Villanos</title>
+    
+    <!-- Fuentes de Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/create_team.css">
+</head>
+<body>
+    <!-- Header con navegación -->
+    <header class="team-header">
+        <div class="header-content">
+            <h1 class="page-title">Crear Equipo</h1>
+            <div class="header-actions">
+                <button id="back-btn" class="btn btn-secondary">← Volver al Menú</button>
+                <button id="logout-btn" class="btn btn-danger">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor principal -->
+    <main class="team-container">
+        <!-- Panel lateral para el equipo -->
+        <aside class="team-panel">
+            <div class="panel-header">
+                <h2 id="team-type-title">Selecciona el tipo de equipo</h2>
+                <div class="team-counter">
+                    <span id="selected-count">0</span>/3
+                </div>
+            </div>
+            
+            <div class="team-members">
+                <div class="member-slot" data-slot="1">
+                    <div class="slot-placeholder">
+                        <span>+</span>
+                        <p>Personaje 1</p>
+                    </div>
+                </div>
+                <div class="member-slot" data-slot="2">
+                    <div class="slot-placeholder">
+                        <span>+</span>
+                        <p>Personaje 2</p>
+                    </div>
+                </div>
+                <div class="member-slot" data-slot="3">
+                    <div class="slot-placeholder">
+                        <span>+</span>
+                        <p>Personaje 3</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="team-actions">
+                <button id="create-team-btn" class="btn btn-primary" disabled>
+                    Crear Equipo
+                </button>
+                <button id="clear-team-btn" class="btn btn-secondary">
+                    Limpiar Equipo
+                </button>
+            </div>
+        </aside>
+
+        <!-- Contenido principal -->
+        <section class="main-content">
+            <!-- Selector de tipo de equipo -->
+            <div class="team-type-selector">
+                <h2>Selecciona el tipo de equipo</h2>
+                <div class="type-options">
+                                         <button class="type-option active" data-type="superheroes">
+                         <div class="type-icon">🦸‍♂️</div>
+                         <div class="type-info">
+                             <h3>Equipo de Overwatch</h3>
+                             <p>Forma un equipo de agentes de Overwatch</p>
+                         </div>
+                     </button>
+                     <button class="type-option" data-type="villanos">
+                         <div class="type-icon">🦹‍♂️</div>
+                         <div class="type-info">
+                             <h3>Equipo de Blackwatch</h3>
+                             <p>Forma un equipo de agentes de Blackwatch</p>
+                         </div>
+                     </button>
+                </div>
+            </div>
+
+            <!-- Lista de personajes -->
+            <div class="characters-section">
+                <div class="section-header">
+                    <h2 id="characters-title">Personajes Disponibles</h2>
+                    <div class="search-filter">
+                        <input type="text" id="character-search" placeholder="Buscar personaje...">
+                        <select id="character-filter">
+                            <option value="">Todos</option>
+                            <option value="fuerza">Fuerza</option>
+                            <option value="velocidad">Velocidad</option>
+                            <option value="inteligencia">Inteligencia</option>
+                            <option value="magia">Magia</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="characters-grid" id="characters-grid">
+                    <!-- Los personajes se cargarán dinámicamente -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de confirmación -->
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <h2>Confirmar Equipo</h2>
+            <div id="team-summary"></div>
+            <div class="modal-actions">
+                <button id="confirm-team-btn" class="btn btn-primary">Confirmar</button>
+                <button id="cancel-team-btn" class="btn btn-secondary">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../js/create_team.js"></script>
+</body>
+</html> 

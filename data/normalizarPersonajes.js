@@ -3,23 +3,35 @@ import { connectDB } from './mongoClient.js';
 async function normalizarPersonajes() {
   const db = await connectDB();
   const personajes = await db.collection('personajes').find({}).toArray();
+  
   for (const p of personajes) {
     await db.collection('personajes').updateOne(
       { _id: p._id },
       {
         $set: {
           id: Number(p.id),
-          nivel: Number(p.nivel),
-          experiencia: Number(p.experiencia),
-          escudo: Number(p.escudo),
-          vidaMaxima: p.vidaMaxima !== undefined ? Number(p.vidaMaxima) : undefined,
-          vida: Number(p.vida),
-          dañoBasico: p.dañoBasico !== undefined ? Number(p.dañoBasico) : undefined,
-          dañoEspecial: p.dañoEspecial !== undefined ? Number(p.dañoEspecial) : undefined,
-          dañoUltimate: p.dañoUltimate !== undefined ? Number(p.dañoUltimate) : undefined,
-          cargaUltimate: p.cargaUltimate !== undefined ? Number(p.cargaUltimate) : undefined,
+          nombre: p.nombre,
+          ciudad: p.ciudad,
+          tipo: p.tipo === 'overwatch' ? 'superheroe' : p.tipo === 'blackwatch' ? 'villano' : p.tipo,
           equipo: p.equipo ? p.equipo.trim().toUpperCase() : undefined,
-          tipo: p.tipo ? p.tipo.trim().toLowerCase() : undefined
+          nivel: Number(p.nivel) || 1,
+          experiencia: Number(p.experiencia) || 0,
+          escudo: Number(p.escudo) || 0,
+          vida: 100, // Forzar vida a 100
+          dañoUltimate: Number(p.dañoUltimate) || 0,
+          umbralUltimate: Number(p.umbralUltimate) || 150,
+          ultimateDisponible: Boolean(p.ultimateDisponible) || false,
+          fuerza: Number(p.fuerza) || 50
+        },
+        $unset: {
+          velocidad: "",
+          inteligencia: "",
+          magia: "",
+          imagen: "",
+          vidaMaxima: "",
+          dañoBasico: "",
+          dañoEspecial: "",
+          cargaUltimate: ""
         }
       }
     );

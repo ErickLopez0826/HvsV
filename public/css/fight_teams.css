@@ -1,0 +1,995 @@
+/* ===== VARIABLES CSS ===== */
+:root {
+    --bg-primary: #2b2d31;
+    --bg-secondary: #3a3f44;
+    --bg-tertiary: #4a4f55;
+    --text-primary: #ffffff;
+    --text-secondary: #b9bbbe;
+    --text-muted: #72767d;
+    --accent-color: #FF9C00;
+    --accent-hover: #ff8c00;
+    --btn-primary: #FF9C00;
+    --btn-primary-hover: #ff8c00;
+    --btn-secondary: #4a4f55;
+    --btn-secondary-hover: #5a5f65;
+    --border-radius: 8px;
+    --border-radius-small: 4px;
+    --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.2);
+    --shadow-heavy: 0 8px 16px rgba(0, 0, 0, 0.3);
+    --transition-fast: 0.2s ease;
+    --transition-medium: 0.3s ease;
+    --transition-slow: 0.5s ease;
+}
+
+/* ===== RESET Y BASE ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* ===== HEADER ===== */
+.fight-header {
+    background: rgba(58, 63, 68, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.fight-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== BOTONES ===== */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.btn-primary {
+    background: var(--btn-primary);
+    color: #000;
+    box-shadow: var(--shadow-medium);
+}
+
+.btn-primary:hover {
+    background: var(--btn-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-heavy);
+}
+
+.btn-primary:disabled {
+    background: var(--text-muted);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-secondary {
+    background: var(--btn-secondary);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+    background: var(--btn-secondary-hover);
+    transform: translateY(-1px);
+}
+
+/* ===== CONTENEDOR PRINCIPAL ===== */
+.fight-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: calc(100vh - 80px);
+}
+
+/* ===== FASES DE PELEA ===== */
+.fight-phase {
+    background: rgba(58, 63, 68, 0.9);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-medium);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.fight-phase.hidden {
+    display: none;
+}
+
+.phase-title {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.phase-title h2 {
+    font-size: 2rem;
+    color: var(--accent-color);
+    margin-bottom: 0.5rem;
+}
+
+.phase-title p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+/* ===== SELECCIÓN DE EQUIPOS ===== */
+.team-selection {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(74, 79, 85, 0.5);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.team-selection h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.team-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius-small);
+}
+
+.team-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.team-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.team-stats .stat {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* ===== CONTROLES DE EQUIPO DEL JUGADOR ===== */
+.player-team-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.player-team-controls .btn {
+    flex: 1;
+    min-width: auto;
+}
+
+.enemy-team-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.enemy-team-controls .btn {
+    flex: 1;
+    min-width: auto;
+}
+
+.character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.character-card {
+    background: rgba(74, 79, 85, 0.8);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-medium);
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.character-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-heavy);
+    border-color: var(--accent-color);
+}
+
+.character-card.selected {
+    border-color: var(--accent-color);
+    background: rgba(255, 156, 0, 0.1);
+    box-shadow: 0 0 20px rgba(255, 156, 0, 0.3);
+}
+
+.character-avatar {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--bg-tertiary);
+    margin: 0 auto 1rem;
+}
+
+.character-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.character-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.character-type {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.character-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.stat {
+    text-align: center;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius-small);
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+/* ===== ACCIONES DE PELEA ===== */
+.fight-actions {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.fight-actions .btn {
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+    min-width: 200px;
+}
+
+/* ===== ÁREA DE COMBATE ===== */
+.fight-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: rgba(74, 79, 85, 0.5);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 2rem;
+}
+
+.team {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.team-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius-small);
+}
+
+.team-header h3 {
+    font-size: 1.3rem;
+    color: var(--accent-color);
+    margin: 0;
+}
+
+.team-health {
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.team-characters {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.combat-character {
+    background: rgba(74, 79, 85, 0.8);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: all var(--transition-fast);
+}
+
+.combat-character.alive {
+    border-color: #44ff44;
+}
+
+.combat-character.dead {
+    border-color: #ff4444;
+    opacity: 0.5;
+    position: relative;
+}
+
+.combat-character.dead::after {
+    content: '💀';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    z-index: 10;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.combat-character.dead .combat-character-hp {
+    color: #ff4444;
+    font-weight: bold;
+}
+
+.combat-character-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 0.5rem;
+    background: var(--bg-tertiary);
+}
+
+.combat-character-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.combat-character-name {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+}
+
+.combat-character-hp {
+    font-size: 0.9rem;
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.vs-indicator {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    margin: 0 1rem;
+}
+
+/* ===== ACCIONES DE COMBATE ===== */
+.combat-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.action-selection {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--border-color);
+}
+
+.action-selection h4 {
+    margin: 0 0 1rem 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.target-selection {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.target-character {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-width: 120px;
+}
+
+.target-character:hover {
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-light);
+}
+
+.target-character.selected {
+    border-color: var(--accent-color);
+    background: rgba(255, 156, 0, 0.1);
+    box-shadow: 0 0 15px rgba(255, 156, 0, 0.3);
+}
+
+.target-character img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent-color);
+}
+
+.target-character .character-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.target-character .character-hp {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.target-character.dead {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.target-character.dead img {
+    filter: grayscale(100%);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.action-buttons .btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    border: none;
+    outline: none;
+    min-width: 150px;
+}
+
+.action-buttons .btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.action-buttons .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.action-buttons .btn-primary {
+    background: var(--accent-color);
+    color: white;
+}
+
+.action-buttons .btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+.action-buttons .btn-secondary:hover:not(:disabled) {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+/* Estilos para el botón ultimate cuando está cargado */
+.action-buttons .btn-secondary:not(:disabled) {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    border-color: #ff6b35;
+    box-shadow: 0 0 15px rgba(255, 107, 53, 0.4);
+    animation: ultimate-glow 2s ease-in-out infinite;
+}
+
+.action-buttons .btn-secondary:not(:disabled):hover {
+    background: linear-gradient(135deg, #ff5722, #ff9800);
+    border-color: #ff5722;
+    box-shadow: 0 0 20px rgba(255, 87, 34, 0.6);
+    transform: translateY(-3px);
+}
+
+@keyframes ultimate-glow {
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 107, 53, 0.4); }
+    50% { box-shadow: 0 0 25px rgba(255, 107, 53, 0.8); }
+}
+
+.turn-info {
+    text-align: center;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    border: 2px solid var(--border-color);
+}
+
+.turn-info span {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.turn-info.enemy-turn span {
+    color: var(--accent-color);
+}
+
+/* ===== LOG DE COMBATE ===== */
+.combat-log {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.combat-log h3 {
+    margin-bottom: 1rem;
+    color: var(--accent-color);
+    font-size: 1.2rem;
+}
+
+.log-messages {
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.log-message {
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-small);
+    border-left: 3px solid var(--accent-color);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.log-message.attack {
+    border-left-color: #ff4444;
+    color: #ff6666;
+}
+
+.log-message.defend {
+    border-left-color: #44ff44;
+    color: #66ff66;
+}
+
+.log-message.special {
+    border-left-color: #ffaa00;
+    color: #ffcc00;
+}
+
+.log-message.ultimate {
+    border-left-color: #ff00ff;
+    color: #ff66ff;
+}
+
+.log-message.levelup {
+    border-left-color: #4CAF50;
+    color: #4CAF50;
+    font-weight: 600;
+    animation: levelup-glow 2s ease-in-out;
+}
+
+@keyframes levelup-glow {
+    0%, 100% { text-shadow: 0 0 5px rgba(76, 175, 80, 0.5); }
+    50% { text-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }
+}
+
+/* Estilos para personajes muertos en selección de objetivos */
+.target-character.dead {
+    opacity: 0.3;
+    filter: grayscale(100%);
+    cursor: not-allowed;
+}
+
+.target-character.dead:hover {
+    transform: none;
+    border-color: var(--border-color);
+    box-shadow: none;
+}
+
+.no-targets {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 2rem;
+}
+
+/* ===== MODALES ===== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-heavy);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-content h3 {
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.team-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+.team-option {
+    background: rgba(74, 79, 85, 0.8);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 2px solid transparent;
+}
+
+.team-option:hover {
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.team-option.selected {
+    border-color: var(--accent-color);
+    background: rgba(255, 156, 0, 0.1);
+}
+
+/* ===== TARJETAS DE EQUIPOS ===== */
+.team-card {
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 2px solid transparent;
+    box-shadow: var(--shadow-light);
+}
+
+.team-card:hover {
+    background: var(--accent-color);
+    color: #000;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.team-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.team-card-header h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.team-card:hover .team-card-header h4 {
+    color: #000;
+}
+
+.team-type {
+    background: var(--accent-color);
+    color: #000;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-small);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.team-card:hover .team-type {
+    background: #000;
+    color: var(--accent-color);
+}
+
+.team-card-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.team-card:hover .team-card-stats {
+    color: #000;
+}
+
+.team-card-characters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.team-character {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 60px;
+}
+
+.team-character img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent-color);
+}
+
+.team-card:hover .team-character img {
+    border-color: #000;
+}
+
+.team-character span {
+    font-size: 0.7rem;
+    text-align: center;
+    color: var(--text-secondary);
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.team-card:hover .team-character span {
+    color: #000;
+}
+
+.team-card.selected {
+    border-color: var(--accent-color);
+    background: rgba(255, 156, 0, 0.1);
+    box-shadow: 0 0 20px rgba(255, 156, 0, 0.3);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .fight-container {
+        padding: 1rem;
+    }
+    
+    .fight-summary {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .team {
+        width: 100%;
+    }
+    
+    .team-characters {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .vs-indicator {
+        margin: 1rem 0;
+    }
+    
+    .combat-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .team-list {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .team-card {
+        padding: 1rem;
+    }
+    
+    .team-card-characters {
+        gap: 0.25rem;
+    }
+    
+    .team-character img {
+        width: 35px;
+        height: 35px;
+    }
+}
+    
+    .character-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .enemy-team-controls {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .fight-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .phase-title h2 {
+        font-size: 1.5rem;
+    }
+    
+    .character-card {
+        padding: 1rem;
+    }
+    
+    .character-avatar {
+        font-size: 2rem;
+        width: 60px;
+        height: 60px;
+    }
+    
+    .team-characters {
+        grid-template-columns: 1fr;
+    }
+    
+    .character-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .team-info {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .team-card {
+        padding: 0.75rem;
+    }
+    
+    .team-card-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+    
+    .team-card-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .team-character img {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .team-character span {
+        font-size: 0.6rem;
+        max-width: 50px;
+    }
+ 

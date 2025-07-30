@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pelea de Equipos - Héroes vs Villanos</title>
+    <link rel="stylesheet" href="../css/fight_teams.css">
+</head>
+<body>
+    <!-- Header con navegación -->
+    <header class="fight-header">
+        <div class="header-content">
+            <h1>⚔️ Pelea de Equipos</h1>
+            <button class="btn btn-secondary" onclick="window.location.href='/menu'">
+                🏠 Volver al Menú
+            </button>
+        </div>
+    </header>
+
+    <!-- Contenedor principal -->
+    <main class="fight-container">
+        <!-- Fase 1: Selección de equipos -->
+        <div id="selection-phase" class="fight-phase">
+            <div class="phase-title">
+                <h2>🎯 Selecciona los Equipos</h2>
+                <p>Elige tu equipo y el equipo enemigo para la batalla</p>
+            </div>
+
+            <!-- Selección del equipo del jugador -->
+            <div class="team-selection">
+                <h3>👥 Tu Equipo</h3>
+                <div class="player-team-controls">
+                    <button class="btn btn-secondary" id="select-player-team-btn">
+                        📋 Seleccionar Mi Equipo
+                    </button>
+                </div>
+                <div class="team-info">
+                    <div class="team-name" id="player-team-name">Selecciona tu equipo</div>
+                    <div class="team-stats">
+                        <span class="stat">Nivel Promedio: <span id="player-team-level">-</span></span>
+                        <span class="stat">Poder Total: <span id="player-team-power">-</span></span>
+                    </div>
+                </div>
+                <div class="character-grid" id="player-team-characters">
+                    <!-- Los personajes del equipo se cargarán dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Selección del equipo enemigo -->
+            <div class="team-selection">
+                <h3>🤖 Equipo Enemigo</h3>
+                <div class="enemy-team-controls">
+                    <button class="btn btn-secondary" id="random-team-btn">
+                        🎲 Equipo Aleatorio
+                    </button>
+                    <button class="btn btn-secondary" id="select-team-btn">
+                        📋 Seleccionar Equipo
+                    </button>
+                </div>
+                <div class="team-info">
+                    <div class="team-name" id="enemy-team-name">Equipo Enemigo</div>
+                    <div class="team-stats">
+                        <span class="stat">Nivel Promedio: <span id="enemy-team-level">1</span></span>
+                        <span class="stat">Poder Total: <span id="enemy-team-power">300</span></span>
+                    </div>
+                </div>
+                <div class="character-grid" id="enemy-team-characters">
+                    <!-- Los personajes del equipo enemigo se cargarán dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Botón para iniciar pelea -->
+            <div class="fight-actions">
+                <button id="start-fight-btn" class="btn btn-primary" disabled>
+                    ⚔️ Iniciar Pelea de Equipos
+                </button>
+            </div>
+        </div>
+
+        <!-- Fase 2: Área de combate -->
+        <div id="combat-phase" class="fight-phase hidden">
+            <div class="phase-title">
+                <h2>⚔️ Batalla de Equipos</h2>
+                <p>La batalla ha comenzado</p>
+            </div>
+
+            <!-- Resumen de la pelea -->
+            <div class="fight-summary">
+                <div class="team player-team">
+                    <div class="team-header">
+                        <h3 id="player-team-title">Tu Equipo</h3>
+                        <div class="team-health">
+                            <span>Vida Total: </span>
+                            <span id="player-team-health">300</span>
+                        </div>
+                    </div>
+                    <div class="team-characters" id="player-team-combat">
+                        <!-- Personajes del equipo del jugador en combate -->
+                    </div>
+                </div>
+
+                <div class="vs-indicator">
+                    <span>VS</span>
+                </div>
+
+                <div class="team enemy-team">
+                    <div class="team-header">
+                        <h3 id="enemy-team-title">Equipo Enemigo</h3>
+                        <div class="team-health">
+                            <span>Vida Total: </span>
+                            <span id="enemy-team-health">300</span>
+                        </div>
+                    </div>
+                    <div class="team-characters" id="enemy-team-combat">
+                        <!-- Personajes del equipo enemigo en combate -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones de combate -->
+            <div class="combat-actions">
+                <div class="action-selection">
+                    <h4>🎯 Selecciona un objetivo enemigo:</h4>
+                    <div id="enemy-targets" class="target-selection">
+                        <!-- Objetivos enemigos seleccionables -->
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="attack-btn" class="btn btn-primary" disabled>
+                        ⚔️ Ataque Básico
+                    </button>
+                    <button id="special-btn" class="btn btn-secondary" disabled>
+                        🔥 Ataque Especial
+                    </button>
+                    <button id="ultimate-btn" class="btn btn-secondary" disabled>
+                        ⭐ Ultimate
+                    </button>
+                </div>
+                
+                <div class="turn-info">
+                    <span id="current-turn">Turno: Tu equipo</span>
+                </div>
+            </div>
+
+            <!-- Log de combate -->
+            <div class="combat-log">
+                <h3>📜 Historial de Combate</h3>
+                <div id="combat-messages" class="log-messages">
+                    <div class="log-message">La batalla de equipos ha comenzado...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+               <!-- Modal de selección de equipo enemigo -->
+           <div id="team-select-modal" class="modal hidden">
+               <div class="modal-content">
+                   <h3>📋 Seleccionar Equipo Enemigo</h3>
+                   <div class="team-list" id="available-teams">
+                       <!-- Lista de equipos disponibles -->
+                   </div>
+                   <div class="modal-actions">
+                       <button class="btn btn-secondary" onclick="fightTeamsApp.cancelTeamSelection()">
+                           ❌ Cancelar
+                       </button>
+                   </div>
+               </div>
+           </div>
+
+           <!-- Modal de selección de equipo del jugador -->
+           <div id="player-team-select-modal" class="modal hidden">
+               <div class="modal-content">
+                   <h3>👥 Seleccionar Mi Equipo</h3>
+                   <div class="team-list" id="available-player-teams">
+                       <!-- Lista de equipos disponibles para el jugador -->
+                   </div>
+                   <div class="modal-actions">
+                       <button class="btn btn-secondary" onclick="fightTeamsApp.cancelPlayerTeamSelection()">
+                           ❌ Cancelar
+                       </button>
+                   </div>
+               </div>
+           </div>
+
+    <!-- Modal de confirmación -->
+    <div id="confirm-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>⚔️ Confirmar Pelea de Equipos</h3>
+            <div id="fight-summary">
+                <!-- Resumen de la pelea -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="fightTeamsApp.cancelFight()">
+                    ❌ Cancelar
+                </button>
+                <button class="btn btn-primary" onclick="fightTeamsApp.confirmFight()">
+                    ⚔️ Confirmar Pelea
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de resultado -->
+    <div id="result-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="result-title">🏆 Resultado</h3>
+            <div id="result-content">
+                <!-- Contenido del resultado -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="fightTeamsApp.newFight()">
+                    🎮 Nueva Pelea
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='/menu'">
+                    🏠 Volver al Menú
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/fight_teams.js"></script>
+</body>
+</html> 

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Héroes vs Villanos - Juego de Batalla</title>
+    
+    <!-- Fuentes de Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/login.css">
+    <link rel="stylesheet" href="../css/register.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <!-- Video de fondo para login/registro -->
+    <div class="background-video-container">
+        <video autoplay muted loop id="background-video">
+            <source src="../images/Videos/Login.webm" type="video/webm">
+            Tu navegador no soporta el elemento video.
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+    
+    <!-- Pantalla de Inicio de Sesión -->
+    <div id="login-screen" class="screen active">
+        <div class="container">
+            <div class="login-card">
+                <div class="logo-section">
+                    <h1 class="game-title">OVERWATCH</h1>
+                    <p class="subtitle">¡Entra en la batalla!</p>
+                </div>
+                
+                <form id="login-form" class="form">
+                    <div class="input-group">
+                        <label for="login-username">Usuario</label>
+                        <input type="text" id="login-username" name="username" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" name="password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span>Iniciar Sesión</span>
+                    </button>
+                </form>
+                
+                <div class="form-footer">
+                    <p>¿No tienes cuenta? <a href="#" id="show-register">Crea una aquí</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Creación de Cuenta -->
+    <div id="register-screen" class="screen">
+        <div class="container">
+            <div class="register-card">
+                <div class="logo-section">
+                    <h1 class="game-title">Crear Cuenta</h1>
+                    <p class="subtitle">Únete a la batalla</p>
+                </div>
+                
+                <form id="register-form" class="form">
+                    <div class="input-group">
+                        <label for="register-name">Usuario</label>
+                        <input type="text" id="register-name" name="name" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="register-password">Contraseña</label>
+                        <input type="password" id="register-password" name="password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span>Crear Cuenta</span>
+                    </button>
+                </form>
+                
+                <div class="form-footer">
+                    <p>¿Ya tienes cuenta? <a href="#" id="show-login">Inicia sesión aquí</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla del Menú Principal -->
+    <div id="dashboard-screen" class="screen">
+        <div class="dashboard-container">
+            <header class="dashboard-header">
+                <div class="welcome-section">
+                    <h2 id="welcome-message">¡Bienvenido, <span id="user-name">Usuario</span>!</h2>
+                    <button id="logout-btn" class="btn btn-secondary">Cerrar Sesión</button>
+                </div>
+            </header>
+            
+            <main class="dashboard-main">
+                <div class="game-cards">
+                    <div class="game-card" id="create-team-card">
+                        <div class="card-icon">
+                            <div class="pixel-art-placeholder">👥</div>
+                        </div>
+                        <h3>Crear Equipo</h3>
+                        <p>Forma tu equipo de héroes y villanos</p>
+                        <button class="btn btn-card">Crear Equipo</button>
+                    </div>
+                    
+                    <div class="game-card" id="fight-1v1-card">
+                        <div class="card-icon">
+                            <div class="pixel-art-placeholder">⚔️</div>
+                        </div>
+                        <h3>Pelea 1 vs 1</h3>
+                        <p>Batalla individual entre personajes</p>
+                        <button class="btn btn-card">Pelea 1 vs 1</button>
+                    </div>
+                    
+                    <div class="game-card" id="fight-3v3-card">
+                        <div class="card-icon">
+                            <div class="pixel-art-placeholder">🎯</div>
+                        </div>
+                        <h3>Pelea 3 vs 3</h3>
+                        <p>Batalla en equipo de 3 contra 3</p>
+                        <button class="btn btn-card">Pelea 3 vs 3</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../js/main.js"></script>
+</body>
+</html> 

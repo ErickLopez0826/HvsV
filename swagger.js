@@ -38,7 +38,15 @@ const options = {
             nombre: { type: 'string', description: 'Nombre del personaje' },
             ciudad: { type: 'string', description: 'Ciudad de origen' },
             tipo: { type: 'string', enum: ['superheroe', 'villano'], description: 'Tipo de personaje' },
-            vida: { type: 'integer', description: 'Vida actual del personaje', default: 100 }
+            equipo: { type: 'string', description: 'Equipo al que pertenece' },
+            nivel: { type: 'integer', description: 'Nivel del personaje', default: 1 },
+            experiencia: { type: 'integer', description: 'Experiencia actual', default: 0 },
+            escudo: { type: 'integer', description: 'Escudo del personaje', default: 0 },
+            vida: { type: 'integer', description: 'Vida actual del personaje', default: 100 },
+            dañoUltimate: { type: 'integer', description: 'Daño acumulado para ultimate', default: 0 },
+            umbralUltimate: { type: 'integer', description: 'Umbral para activar ultimate', default: 150 },
+            ultimateDisponible: { type: 'boolean', description: 'Si el ultimate está disponible', default: false },
+            fuerza: { type: 'integer', description: 'Fuerza del personaje', default: 50 }
           },
           required: ['nombre', 'tipo']
         },
@@ -53,14 +61,12 @@ const options = {
     security: [{ bearerAuth: [] }],
     tags: [
       { name: 'Auth', description: 'Autenticación' },
-      { name: 'Usuarios', description: 'Gestión de usuarios' },
-      { name: 'Personajes', description: 'Gestión de personajes (superhéroes y villanos)' },
-      { name: 'Equipos', description: 'Gestión de equipos' },
-      { name: 'Peleas', description: 'Gestión de peleas' }
+      { name: 'Personajes', description: 'Gestión de personajes' },
+      { name: 'Peleas', description: 'Gestión de peleas' },
+      { name: 'Equipos', description: 'Gestión de equipos' }
     ]
   },
-  apis: ['./controllers/*.js'],
+  apis: ['./controllers/*.js']
 };
 
-const swaggerSpec = swaggerJsdoc(options);
-export default swaggerSpec; 
+export default options; 
