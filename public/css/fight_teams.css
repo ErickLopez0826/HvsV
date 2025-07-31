@@ -261,8 +261,8 @@ body {
 }
 
 .character-image {
-    width: 80px !important;
-    height: 80px !important;
+    width: 50px !important;
+    height: 50px !important;
     object-fit: cover !important;
     object-position: center !important;
     border-radius: 50% !important;
@@ -414,8 +414,8 @@ body {
 }
 
 .combat-character-image {
-    width: 80px !important;
-    height: 80px !important;
+    width: 50px !important;
+    height: 50px !important;
     object-fit: cover !important;
     object-position: center !important;
     border-radius: 50% !important;
@@ -497,8 +497,8 @@ body {
 }
 
 .target-character img {
-    width: 100% !important;
-    height: 100% !important;
+    width: 60px !important;
+    height: 60px !important;
     border-radius: 50% !important;
     object-fit: cover !important;
     object-position: center !important;
@@ -846,8 +846,8 @@ body {
 }
 
 .team-character img {
-    width: 60px !important;
-    height: 60px !important;
+    width: 40px !important;
+    height: 40px !important;
     border-radius: 50% !important;
     object-fit: cover !important;
     object-position: center !important;
@@ -921,8 +921,8 @@ body {
     }
     
     .team-character img {
-        width: 35px;
-        height: 35px;
+        width: 30px;
+        height: 30px;
         object-position: center;
     }
     

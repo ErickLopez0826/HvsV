@@ -20,17 +20,11 @@ const app = express()
 app.use(cors({
   origin: [
     'https://hvsv.onrender.com',
-    'https://hsv.onrender.com',
-    'http://localhost:3003',
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:3002',
-    'http://localhost:3004',
-    'http://localhost:3005'
+    'https://hsv.onrender.com'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false
 }))
 const JWT_SECRET = 'supersecretkey123' // En producción, usa variable de entorno
 

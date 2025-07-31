@@ -52,10 +52,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #2B2D31 0%, #3A3F44 100%); /* FONDO ALTERNATIVO */
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%); /* FONDO ALTERNATIVO */
     overflow: hidden !important;
-    min-height: 100vh !important;
-    width: 100% !important;
 }
 
 /* Ocultar video de fondo en el dashboard */
@@ -78,10 +76,6 @@
     margin: 0 !important;
     max-height: 80vh !important;
     overflow: hidden !important;
-    border-radius: 15px !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
 }
 
 /* Ajustar el contenedor principal para evitar scroll */
@@ -92,10 +86,8 @@
     align-items: center;
     justify-content: center;
     padding: 1rem !important;
-    background: linear-gradient(135deg, #2B2D31 0%, #3A3F44 100%);
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
     overflow: hidden !important;
-    width: 100% !important;
-    max-width: 100% !important;
 }
 
 /* Separador visual entre formulario y enlaces */
@@ -106,29 +98,7 @@
         rgba(255, 156, 0, 0.3) 50%, 
         transparent 100%);
     margin: 1rem 0;
-}
-
-/* Asegurar que las pantallas sean visibles */
-.screen {
-    display: none !important;
-    min-height: 100vh !important;
-    width: 100% !important;
-    position: relative !important;
-    z-index: 10 !important;
-}
-
-.screen.active {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-.screen:not(.active) {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
+    width: 100%;
 }
 
 /* Contenedor del botón para mejor centrado */

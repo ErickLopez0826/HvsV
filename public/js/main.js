@@ -1,16 +1,5 @@
 // ===== CONFIGURACIÓN GLOBAL =====
-// Detectar automáticamente si estamos en local o en producción
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE_URL = isLocalhost 
-    ? 'http://localhost:3003/api' 
-    : `${window.location.protocol}//${window.location.hostname}/api`;
-
-console.log('🌐 Configuración de API:', {
-    hostname: window.location.hostname,
-    isLocalhost,
-    API_BASE_URL
-});
-
+const API_BASE_URL = 'http://localhost:3003/api'; // Ajustar según tu configuración
 let currentUser = null;
 
 // ===== CLASE PRINCIPAL DE LA APLICACIÓN =====
@@ -63,98 +52,62 @@ class GameApp {
     // ===== CONFIGURACIÓN DE EVENT LISTENERS =====
     setupEventListeners() {
         // Navegación entre pantallas
-        const showRegisterBtn = document.getElementById('show-register');
-        const showLoginBtn = document.getElementById('show-login');
-        
-        if (showRegisterBtn) {
-            showRegisterBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showScreen('register');
-            });
-        }
-        
-        if (showLoginBtn) {
-            showLoginBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showScreen('login');
-            });
-        }
+        document.getElementById('show-register').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.showScreen('register');
+        });
+
+        document.getElementById('show-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.showScreen('login');
+        });
 
         // Formularios
-        const loginForm = document.getElementById('login-form');
-        const registerForm = document.getElementById('register-form');
-        
-        if (loginForm) {
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleLogin();
-            });
-        }
-        
-        if (registerForm) {
-            registerForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleRegister();
-            });
-        }
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleLogin();
+        });
+
+        document.getElementById('register-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleRegister();
+        });
 
         // Botón de logout
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
-                this.handleLogout();
-            });
-        }
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            this.handleLogout();
+        });
 
         // Botones del dashboard
-        const cardButtons = document.querySelectorAll('.btn-card');
-        cardButtons.forEach(button => {
+        document.querySelectorAll('.btn-card').forEach(button => {
             button.addEventListener('click', (e) => {
                 this.handleGameAction(e.target.textContent.trim());
             });
         });
 
         // Validación de contraseña en tiempo real
-        const registerPassword = document.getElementById('register-password');
-        if (registerPassword) {
-            registerPassword.addEventListener('input', (e) => {
-                this.validatePassword(e.target.value);
-            });
-        }
-        
-        console.log('✅ Event listeners configurados correctamente');
+        document.getElementById('register-password').addEventListener('input', (e) => {
+            this.validatePassword(e.target.value);
+        });
     }
 
     // ===== NAVEGACIÓN ENTRE PANTALLAS =====
     showScreen(screenName) {
-        console.log(`🔄 Intentando mostrar pantalla: ${screenName}`);
-        
         // Ocultar todas las pantallas
-        const allScreens = document.querySelectorAll('.screen');
-        console.log(`📱 Pantallas encontradas: ${allScreens.length}`);
-        
-        allScreens.forEach(screen => {
+        document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.remove('active');
-            console.log(`❌ Ocultando pantalla: ${screen.id}`);
         });
 
         // Mostrar la pantalla seleccionada
         const targetScreen = document.getElementById(`${screenName}-screen`);
-        console.log(`🎯 Buscando pantalla: ${screenName}-screen`);
-        console.log(`🎯 Pantalla encontrada:`, targetScreen);
-        
         if (targetScreen) {
             targetScreen.classList.add('active');
             this.currentScreen = screenName;
-            console.log(`✅ Pantalla ${screenName} activada correctamente`);
             
             // Animación de entrada
             setTimeout(() => {
                 targetScreen.classList.add('fade-in-up');
             }, 100);
-        } else {
-            console.error(`❌ No se encontró la pantalla: ${screenName}-screen`);
-            console.log('🔍 Pantallas disponibles:', Array.from(allScreens).map(s => s.id));
         }
     }
 
@@ -218,8 +171,6 @@ class GameApp {
             password: formData.get('password')
         };
 
-        console.log('📝 Intentando registrar usuario:', registerData.name);
-
         try {
             this.showLoading('Creando cuenta...');
             
@@ -227,16 +178,12 @@ class GameApp {
             const response = await fetch(`${API_BASE_URL}/users`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(registerData)
             });
 
-            console.log('📡 Respuesta del servidor:', response.status, response.statusText);
-
             const data = await response.json();
-            console.log('📄 Datos de respuesta:', data);
 
             if (response.ok) {
                 this.hideLoading();
@@ -251,14 +198,12 @@ class GameApp {
                 }, 1500);
             } else {
                 this.hideLoading();
-                const errorMessage = data.message || data.error || 'Error al crear la cuenta';
-                this.showError(errorMessage);
-                console.error('❌ Error en registro:', data);
+                this.showError(data.message || 'Error al crear la cuenta');
             }
         } catch (error) {
             this.hideLoading();
-            console.error('💥 Error de conexión:', error);
-            this.showError('Error de conexión. Verifica tu conexión a internet e intenta nuevamente.');
+            this.showError('Error de conexión. Intenta nuevamente.');
+            console.error('Error de registro:', error);
         }
     }
 
