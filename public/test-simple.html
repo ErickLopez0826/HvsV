@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Prueba</title>
+    <style>
+        body {
+            background: #2B2D31;
+            color: #FFFFFF;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .test-box {
+            background: #3A3F44;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 400px;
+        }
+        .success {
+            color: #00FF00;
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-box">
+        <h1>✅ Página de Prueba Funcionando</h1>
+        <p class="success">¡Si puedes ver esto, el servidor funciona correctamente!</p>
+        <p>Fecha y hora: <span id="datetime"></span></p>
+        <p>URL actual: <span id="current-url"></span></p>
+    </div>
+
+    <script>
+        document.getElementById('datetime').textContent = new Date().toLocaleString();
+        document.getElementById('current-url').textContent = window.location.href;
+        
+        console.log('✅ Página de prueba cargada correctamente');
+        console.log('URL:', window.location.href);
+        console.log('User Agent:', navigator.userAgent);
+    </script>
+</body>
+</html> 

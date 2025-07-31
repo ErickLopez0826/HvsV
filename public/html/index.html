@@ -8,22 +8,183 @@
     <meta http-equiv="Expires" content="0">
     <title>Héroes vs Villanos - Juego de Batalla</title>
     
+    <!-- Favicon para evitar el error 404 -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    
     <!-- Fuentes de Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/styles.css?v=13.0">
-    <link rel="stylesheet" href="../css/login.css?v=13.0">
-    <link rel="stylesheet" href="../css/register.css?v=13.0">
-    <link rel="stylesheet" href="../css/dashboard.css?v=13.0">
+    <link rel="stylesheet" href="../css/styles.css?v=15.0">
+    <link rel="stylesheet" href="../css/login.css?v=15.0">
+    <link rel="stylesheet" href="../css/register.css?v=15.0">
+    <link rel="stylesheet" href="../css/dashboard.css?v=15.0">
+    
+    <!-- Estilos críticos inline para evitar problemas de caché -->
+    <style>
+        /* Estilos críticos para asegurar que la página se muestre */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Rajdhani', sans-serif;
+            background: #2B2D31;
+            color: #FFFFFF;
+            min-height: 100vh;
+        }
+        
+        .screen {
+            display: none;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        
+        .login-card, .register-card {
+            background: rgba(58, 63, 68, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .input-group label {
+            color: #FFFFFF;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .input-group input {
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(74, 79, 85, 0.8);
+            color: #FFFFFF;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #00BFFF;
+            box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.2);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00BFFF, #0080FF);
+            color: #FFFFFF;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0080FF, #0066CC);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
+        }
+        
+        .form-footer {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .form-footer a {
+            color: #00BFFF;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .logo-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .game-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(135deg, #00BFFF, #FF6B35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #CCCCCC;
+            margin: 0.5rem 0 0 0;
+        }
+        
+        .background-video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .background-video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+    </style>
 </head>
 <body>
     <!-- Video de fondo para login/registro -->
     <div class="background-video-container">
         <video autoplay muted loop id="background-video">
-            <source src="../images/Videos/Login.webm" type="video/webm">
+            <source src="../images/Videos/menu-bg.webm" type="video/webm">
             Tu navegador no soporta el elemento video.
         </video>
         <div class="video-overlay"></div>
@@ -161,10 +322,14 @@
             links.forEach(link => {
                 const href = link.getAttribute('href');
                 if (href) {
-                    link.setAttribute('href', href.split('?')[0] + '?v=' + Date.now());
+                    const baseHref = href.split('?')[0];
+                    link.setAttribute('href', baseHref + '?v=' + Date.now());
                 }
             });
         }
+        
+        // Ejecutar inmediatamente
+        reloadStyles();
         
         // Ejecutar al cargar la página
         window.addEventListener('load', function() {
@@ -172,8 +337,11 @@
             reloadStyles();
         });
         
-        // También ejecutar después de un breve delay
+        // Ejecutar después de un breve delay
         setTimeout(reloadStyles, 100);
+        
+        // Ejecutar después de 1 segundo
+        setTimeout(reloadStyles, 1000);
     </script>
 </body>
 </html> 

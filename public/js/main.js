@@ -52,62 +52,98 @@ class GameApp {
     // ===== CONFIGURACIÓN DE EVENT LISTENERS =====
     setupEventListeners() {
         // Navegación entre pantallas
-        document.getElementById('show-register').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.showScreen('register');
-        });
-
-        document.getElementById('show-login').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.showScreen('login');
-        });
+        const showRegisterBtn = document.getElementById('show-register');
+        const showLoginBtn = document.getElementById('show-login');
+        
+        if (showRegisterBtn) {
+            showRegisterBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showScreen('register');
+            });
+        }
+        
+        if (showLoginBtn) {
+            showLoginBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showScreen('login');
+            });
+        }
 
         // Formularios
-        document.getElementById('login-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleLogin();
-        });
-
-        document.getElementById('register-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleRegister();
-        });
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleLogin();
+            });
+        }
+        
+        if (registerForm) {
+            registerForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleRegister();
+            });
+        }
 
         // Botón de logout
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            this.handleLogout();
-        });
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                this.handleLogout();
+            });
+        }
 
         // Botones del dashboard
-        document.querySelectorAll('.btn-card').forEach(button => {
+        const cardButtons = document.querySelectorAll('.btn-card');
+        cardButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 this.handleGameAction(e.target.textContent.trim());
             });
         });
 
         // Validación de contraseña en tiempo real
-        document.getElementById('register-password').addEventListener('input', (e) => {
-            this.validatePassword(e.target.value);
-        });
+        const registerPassword = document.getElementById('register-password');
+        if (registerPassword) {
+            registerPassword.addEventListener('input', (e) => {
+                this.validatePassword(e.target.value);
+            });
+        }
+        
+        console.log('✅ Event listeners configurados correctamente');
     }
 
     // ===== NAVEGACIÓN ENTRE PANTALLAS =====
     showScreen(screenName) {
+        console.log(`🔄 Intentando mostrar pantalla: ${screenName}`);
+        
         // Ocultar todas las pantallas
-        document.querySelectorAll('.screen').forEach(screen => {
+        const allScreens = document.querySelectorAll('.screen');
+        console.log(`📱 Pantallas encontradas: ${allScreens.length}`);
+        
+        allScreens.forEach(screen => {
             screen.classList.remove('active');
+            console.log(`❌ Ocultando pantalla: ${screen.id}`);
         });
 
         // Mostrar la pantalla seleccionada
         const targetScreen = document.getElementById(`${screenName}-screen`);
+        console.log(`🎯 Buscando pantalla: ${screenName}-screen`);
+        console.log(`🎯 Pantalla encontrada:`, targetScreen);
+        
         if (targetScreen) {
             targetScreen.classList.add('active');
             this.currentScreen = screenName;
+            console.log(`✅ Pantalla ${screenName} activada correctamente`);
             
             // Animación de entrada
             setTimeout(() => {
                 targetScreen.classList.add('fade-in-up');
             }, 100);
+        } else {
+            console.error(`❌ No se encontró la pantalla: ${screenName}-screen`);
+            console.log('🔍 Pantallas disponibles:', Array.from(allScreens).map(s => s.id));
         }
     }
 

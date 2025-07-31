@@ -245,6 +245,21 @@ app.get('/history.html', (req, res) => {
   res.sendFile('html/history.html', { root: 'public' })
 })
 
+// Ruta específica para login (página principal)
+app.get('/login', (req, res) => {
+  res.sendFile('html/index.html', { root: 'public' })
+})
+
+// Ruta específica para dashboard
+app.get('/dashboard', (req, res) => {
+  res.sendFile('html/index.html', { root: 'public' })
+})
+
+// Ruta de prueba simple
+app.get('/test-simple', (req, res) => {
+  res.sendFile('test-simple.html', { root: 'public' })
+})
+
 // Ruta de bienvenida
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3003';
 app.get('/', (req, res) => {
