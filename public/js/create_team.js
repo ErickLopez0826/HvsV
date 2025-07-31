@@ -1,5 +1,8 @@
 // ===== CONFIGURACIÓN GLOBAL =====
-const API_BASE_URL = 'http://localhost:3003/api';
+// Detectar automáticamente la URL base según el entorno
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:3003/api' 
+    : `${window.location.protocol}//${window.location.host}/api`;
 let currentUser = null;
 let selectedTeamType = 'superheroes';
 let selectedCharacters = [];

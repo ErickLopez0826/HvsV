@@ -18,10 +18,31 @@ dotenv.config();
 
 const app = express()
 app.use(cors({
-  origin: [
-    'https://hvsv.onrender.com',
-    'https://hsv.onrender.com'
-  ],
+  origin: function (origin, callback) {
+    // Permitir requests sin origin (como aplicaciones móviles o Postman)
+    if (!origin) return callback(null, true);
+    
+    // Lista de orígenes permitidos
+    const allowedOrigins = [
+      'https://hvsv.onrender.com',
+      'https://hsv.onrender.com',
+      'http://localhost:3003',
+      'http://127.0.0.1:3003'
+    ];
+    
+    // Verificar si el origen está permitido
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('🔒 Origen no permitido:', origin);
+      // En desarrollo, permitir todos los orígenes
+      if (process.env.NODE_ENV !== 'production') {
+        callback(null, true);
+      } else {
+        callback(new Error('Origen no permitido por CORS'));
+      }
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false

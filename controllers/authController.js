@@ -44,6 +44,13 @@ const JWT_SECRET = 'supersecretkey123';
  */
 // POST /api/login
 router.post('/login', async (req, res) => {
+  console.log('🔐 Recibida petición de login desde:', req.headers.origin);
+  console.log('📝 Datos recibidos:', { 
+    username: req.body.username, 
+    name: req.body.name, 
+    password: req.body.password ? '***' : 'no password' 
+  });
+  
   const { username, password, name } = req.body;
   const userName = username || name; // Aceptar tanto username como name
   

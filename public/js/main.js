@@ -1,5 +1,8 @@
 // ===== CONFIGURACIÓN GLOBAL =====
-const API_BASE_URL = 'http://localhost:3003/api'; // Ajustar según tu configuración
+// Detectar automáticamente la URL base según el entorno
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:3003/api' 
+    : `${window.location.protocol}//${window.location.host}/api`;
 let currentUser = null;
 
 // ===== CLASE PRINCIPAL DE LA APLICACIÓN =====
@@ -124,6 +127,9 @@ class GameApp {
         try {
             this.showLoading('Iniciando sesión...');
             
+            console.log('🔐 Intentando login con URL:', `${API_BASE_URL}/login`);
+            console.log('📝 Datos de login:', { username: loginData.username, password: '***' });
+            
             // Llamada al backend
             const response = await fetch(`${API_BASE_URL}/login`, {
                 method: 'POST',
@@ -133,7 +139,10 @@ class GameApp {
                 body: JSON.stringify(loginData)
             });
 
+            console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+            
             const data = await response.json();
+            console.log('📦 Datos recibidos:', data);
 
             if (response.ok) {
                 this.hideLoading();
@@ -158,7 +167,12 @@ class GameApp {
         } catch (error) {
             this.hideLoading();
             this.showError('Error de conexión. Intenta nuevamente.');
-            console.error('Error de login:', error);
+            console.error('❌ Error de login:', error);
+            console.error('🔍 Detalles del error:', {
+                message: error.message,
+                stack: error.stack,
+                url: `${API_BASE_URL}/login`
+            });
         }
     }
 
