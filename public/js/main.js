@@ -1,5 +1,5 @@
 // ===== CONFIGURACIÓN GLOBAL =====
-const API_BASE_URL = 'http://localhost:3001/api'; // Ajustar según tu configuración
+const API_BASE_URL = 'http://localhost:3003/api'; // Ajustar según tu configuración
 let currentUser = null;
 
 // ===== CLASE PRINCIPAL DE LA APLICACIÓN =====
@@ -499,6 +499,11 @@ document.head.appendChild(styleSheet);
 // ===== INICIALIZACIÓN DE LA APLICACIÓN =====
 document.addEventListener('DOMContentLoaded', () => {
     new GameApp();
+    
+    // Mostrar mensaje sobre caché si es necesario
+    setTimeout(() => {
+        showCacheMessage();
+    }, 2000);
 });
 
 // ===== FUNCIONES DE UTILIDAD =====
@@ -514,5 +519,31 @@ function debounce(func, wait) {
     };
 }
 
+// Función para forzar la recarga de CSS
+function forceCSSReload() {
+    const links = document.querySelectorAll('link[rel="stylesheet"]');
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href) {
+            const separator = href.indexOf('?') !== -1 ? '&' : '?';
+            link.setAttribute('href', href + separator + 'v=' + Date.now());
+        }
+    });
+}
+
+// Función para mostrar mensaje sobre caché
+function showCacheMessage() {
+    const message = `
+        <div style="position: fixed; top: 20px; right: 20px; background: #ff6b35; color: white; padding: 15px; border-radius: 8px; z-index: 10000; max-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <h4 style="margin: 0 0 10px 0;">⚠️ Problema de Caché</h4>
+            <p style="margin: 0 0 10px 0; font-size: 14px;">Si no ves los cambios en las imágenes, presiona Ctrl+F5 para limpiar el caché del navegador.</p>
+            <button onclick="this.parentElement.remove()" style="background: white; color: #ff6b35; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Cerrar</button>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', message);
+}
+
 // ===== EXPORTAR PARA USO EXTERNO =====
-window.GameApp = GameApp; 
+window.GameApp = GameApp;
+window.forceCSSReload = forceCSSReload;
+window.showCacheMessage = showCacheMessage; 

@@ -1,5 +1,5 @@
 class Personaje {
-    constructor(id, nombre, ciudad, tipo, equipo, nivel = 1, experiencia = 0, escudo = 0, vida = 100, dañoUltimate = 0, umbralUltimate = 150, ultimateDisponible = false, fuerza = 50) {
+    constructor(id, nombre, ciudad, tipo, equipo, nivel = 1, experiencia = 0, escudo = 0, vida = 100, dañoUltimate = 0, umbralUltimate = 50, ultimateDisponible = false, fuerza = 50) {
         this.id = id;
         this.nombre = nombre;
         this.ciudad = ciudad;
@@ -83,13 +83,13 @@ class Personaje {
 }
 
 class Heroe extends Personaje {
-    constructor(id, nombre, ciudad, equipo, nivel = 1, experiencia = 0, escudo = 0, vida = 100, dañoUltimate = 0, umbralUltimate = 150, ultimateDisponible = false, fuerza = 50) {
+    constructor(id, nombre, ciudad, equipo, nivel = 1, experiencia = 0, escudo = 0, vida = 100, dañoUltimate = 0, umbralUltimate = 50, ultimateDisponible = false, fuerza = 50) {
         super(id, nombre, ciudad, 'superheroe', equipo, nivel, experiencia, escudo, vida, dañoUltimate, umbralUltimate, ultimateDisponible, fuerza);
     }
 }
 
 class Villano extends Personaje {
-    constructor(id, nombre, ciudad, equipo, nivel = 1, experiencia = 0, escudo = 0, vida = 100, dañoUltimate = 0, umbralUltimate = 150, ultimateDisponible = false, fuerza = 50) {
+    constructor(id, nombre, ciudad, equipo, nivel = 1, experiencia = 0, escudo = 0, vida = 100, dañoUltimate = 0, umbralUltimate = 50, ultimateDisponible = false, fuerza = 50) {
         super(id, nombre, ciudad, 'villano', equipo, nivel, experiencia, escudo, vida, dañoUltimate, umbralUltimate, ultimateDisponible, fuerza);
     }
 }

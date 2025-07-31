@@ -44,19 +44,19 @@ const router = express.Router();
  *                   items:
  *                     type: object
  */
-// GET todas las peleas (paginado)
-router.get('/fights', async (req, res) => {
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 10;
-  const creador = req.user && req.user.name;
-  const fights = await fightRepository.getFights(creador);
-  const total = fights.length;
-  const totalPages = Math.ceil(total / limit);
-  const start = (page - 1) * limit;
-  const end = start + limit;
-  const fightsPage = fights.slice(start, end);
-  res.json({ total, totalPages, page, fights: fightsPage });
-});
+// GET todas las peleas (paginado) - Movido a app.js para acceso público
+// router.get('/fights', async (req, res) => {
+//   const page = parseInt(req.query.page, 10) || 1;
+//   const limit = parseInt(req.query.limit, 10) || 10;
+//   const creador = req.user && req.user.name;
+//   const fights = await fightRepository.getFights(creador);
+//   const total = fights.length;
+//   const totalPages = Math.ceil(total / limit);
+//   const start = (page - 1) * limit;
+//   const end = start + limit;
+//   const fightsPage = fights.slice(start, end);
+//   res.json({ total, totalPages, page, fights: fightsPage });
+// });
 
 /**
  * @swagger
@@ -127,34 +127,63 @@ router.get('/fights', async (req, res) => {
  */
 // POST pelea 1 vs 1 por turnos
 router.post('/fights', async (req, res) => {
+  console.log('Recibida petición POST /fights:', req.body);
+  
   const { fightId, id1, id2, atacanteId, defensorId, tipoAtaque } = req.body;
   let pelea, sim1, sim2, historia, creador;
+  
   if (fightId) {
     // Continuar pelea existente
+    console.log('Continuando pelea existente con ID:', fightId);
     pelea = await fightRepository.getFightById(fightId);
     if (!pelea) return res.status(400).json({ error: 'fightId no encontrado' });
     creador = pelea.creador;
-    // Restaurar estado
-    sim1 = Object.assign({}, pelea.personaje1);
-    sim2 = Object.assign({}, pelea.personaje2);
+    // Restaurar estado con propiedades de ultimate
+    sim1 = Object.assign({}, pelea.personaje1, {
+      ultimateDisponible: pelea.personaje1.ultimateDisponible || false,
+      dañoUltimate: pelea.personaje1.dañoUltimate || 0,
+      umbralUltimate: pelea.personaje1.umbralUltimate || 50
+    });
+    sim2 = Object.assign({}, pelea.personaje2, {
+      ultimateDisponible: pelea.personaje2.ultimateDisponible || false,
+      dañoUltimate: pelea.personaje2.dañoUltimate || 0,
+      umbralUltimate: pelea.personaje2.umbralUltimate || 50
+    });
     historia = pelea.historia || [];
   } else {
     // Nueva pelea
+    console.log('Iniciando nueva pelea con personajes:', id1, id2);
     if (!id1 || !id2) return res.status(400).json({ error: 'id1 e id2 son obligatorios' });
     let personajes = await personajeService.getAllPersonajes();
     let personaje1 = personajes.find(p => p.id === parseInt(id1));
     let personaje2 = personajes.find(p => p.id === parseInt(id2));
     if (!personaje1 || !personaje2) return res.status(400).json({ error: 'Ambos personajes deben existir' });
     if (personaje1.tipo === personaje2.tipo) return res.status(400).json({ error: 'Solo se permiten peleas entre un superhéroe y un villano' });
-    sim1 = { ...personaje1, vida: 100 + (personaje1.nivel - 1) * 5 };
-    sim2 = { ...personaje2, vida: 100 + (personaje2.nivel - 1) * 5 };
+    
+    // Inicializar personajes con propiedades de combate
+    sim1 = { 
+      ...personaje1, 
+      vida: 100 + (personaje1.nivel - 1) * 5,
+      ultimateDisponible: false,
+      dañoUltimate: 0,
+      umbralUltimate: 50
+    };
+    sim2 = { 
+      ...personaje2, 
+      vida: 100 + (personaje2.nivel - 1) * 5,
+      ultimateDisponible: false,
+      dañoUltimate: 0,
+      umbralUltimate: 50
+    };
     historia = [];
     creador = req.user && req.user.name;
   }
+  
   // Procesar turno
   let atacante = sim1.id === atacanteId ? sim1 : sim2;
   let defensor = sim1.id === defensorId ? sim1 : sim2;
   let ataque = 0, desc = '', esUltimate = false;
+  
   switch (tipoAtaque) {
     case 'basico':
       ataque = 5 + (atacante.nivel - 1) * 1;
@@ -183,18 +212,27 @@ router.post('/fights', async (req, res) => {
     default:
       return res.status(400).json({ error: 'tipoAtaque inválido' });
   }
+  
   let vidaAntes = defensor.vida;
+  
   if (!esUltimate && defensor.escudo > 0) {
     const reduccion = ataque * (defensor.escudo / 100);
     ataque = ataque - reduccion;
   }
+  
   defensor.vida -= ataque;
   if (defensor.vida < 0) defensor.vida = 0;
+  
+  // Actualizar daño ultimate del atacante
   atacante.dañoUltimate = (atacante.dañoUltimate || 0) + ataque;
-  if (atacante.dañoUltimate >= (atacante.umbralUltimate || 150)) {
+  
+  // Verificar si ultimate está disponible
+  if (atacante.dañoUltimate >= (atacante.umbralUltimate || 50)) {
     atacante.ultimateDisponible = true;
   }
+  
   historia.push(`${atacante.nombre} ataca a ${defensor.nombre}: ${desc} (vida: ${vidaAntes.toFixed(2)} → ${defensor.vida.toFixed(2)})`);
+  
   // Guardar/actualizar pelea
   let nuevoEstado = {
     personaje1: sim1,
@@ -203,20 +241,52 @@ router.post('/fights', async (req, res) => {
     creador
   };
   let nuevoFightId = fightId;
+  
   if (!fightId) {
     const fights = await fightRepository.getFights();
+    console.log('Peleas existentes en la base de datos:', fights.length);
     nuevoFightId = fights.length > 0 ? Math.max(...fights.map(f => f.fightId)) + 1 : 1;
-    await fightRepository.addFight({ fightId: nuevoFightId, ...nuevoEstado });
+    console.log('Guardando nueva pelea con ID:', nuevoFightId);
+    console.log('Datos a guardar:', { fightId: nuevoFightId, ...nuevoEstado });
+    try {
+      await fightRepository.addFight({ fightId: nuevoFightId, ...nuevoEstado });
+      console.log('✅ Pelea guardada exitosamente en la base de datos');
+    } catch (error) {
+      console.error('❌ Error al guardar pelea:', error);
+      return res.status(500).json({ error: 'Error al guardar la pelea en la base de datos' });
+    }
   } else {
-    await fightRepository.updateFight(fightId, nuevoEstado);
+    console.log('Actualizando pelea existente con ID:', fightId);
+    try {
+      await fightRepository.updateFight(fightId, nuevoEstado);
+      console.log('✅ Pelea actualizada exitosamente en la base de datos');
+    } catch (error) {
+      console.error('❌ Error al actualizar pelea:', error);
+      return res.status(500).json({ error: 'Error al actualizar la pelea en la base de datos' });
+    }
   }
+  
   if (sim1 && sim2) {
     // 1 vs 1
-    res.json({
+    const response = {
       fightId: nuevoFightId,
       personajes: [
-        { id: sim1.id, nombre: sim1.nombre, vida: sim1.vida, ultimateDisponible: !!sim1.ultimateDisponible },
-        { id: sim2.id, nombre: sim2.nombre, vida: sim2.vida, ultimateDisponible: !!sim2.ultimateDisponible }
+        { 
+          id: sim1.id, 
+          nombre: sim1.nombre, 
+          vida: sim1.vida, 
+          ultimateDisponible: !!sim1.ultimateDisponible,
+          dañoUltimate: sim1.dañoUltimate || 0,
+          umbralUltimate: sim1.umbralUltimate || 50
+        },
+        { 
+          id: sim2.id, 
+          nombre: sim2.nombre, 
+          vida: sim2.vida, 
+          ultimateDisponible: !!sim2.ultimateDisponible,
+          dañoUltimate: sim2.dañoUltimate || 0,
+          umbralUltimate: sim2.umbralUltimate || 50
+        }
       ],
       turno: {
         atacante: atacante.nombre,
@@ -228,7 +298,9 @@ router.post('/fights', async (req, res) => {
         vidaDespues: Number(defensor.vida.toFixed(2)),
         descripcion: desc
       }
-    });
+    };
+    
+    res.json(response);
   } else {
     // Equipos
     res.json({
@@ -319,9 +391,13 @@ router.post('/fights', async (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 router.post('/fights/teams', async (req, res) => {
+  console.log('Recibida petición POST /fights/teams:', req.body);
+  
   const { fightId, equipoHeroes, equipoVillanos, atacanteId, defensorId, tipoAtaque } = req.body;
   let pelea, heroes, villanos, simulados, rondas, creador;
+  
   if (fightId) {
+    console.log('Continuando pelea de equipos existente con ID:', fightId);
     pelea = await fightRepository.getFightById(fightId);
     if (!pelea) return res.status(400).json({ error: 'fightId no encontrado' });
     heroes = pelea.heroes;
@@ -330,6 +406,7 @@ router.post('/fights/teams', async (req, res) => {
     rondas = pelea.rondas || [];
     creador = pelea.creador;
   } else {
+    console.log('Iniciando nueva pelea de equipos:', equipoHeroes, 'vs', equipoVillanos);
     if (!equipoHeroes || !equipoVillanos) return res.status(400).json({ error: 'equipoHeroes y equipoVillanos son obligatorios' });
     
     // Intentar buscar equipos en la base de datos primero
@@ -357,11 +434,13 @@ router.post('/fights/teams', async (req, res) => {
     rondas = [];
     creador = req.user && req.user.name;
   }
+  
   // Procesar turno
   let atacante = simulados[atacanteId];
   let defensor = simulados[defensorId];
   if (!atacante || !defensor) return res.status(400).json({ error: 'atacanteId o defensorId inválido' });
   let ataque = 0, desc = '', esUltimate = false;
+  
   switch (tipoAtaque) {
     case 'basico':
       ataque = 5 + (atacante.nivel - 1) * 1;
@@ -390,6 +469,7 @@ router.post('/fights/teams', async (req, res) => {
     default:
       return res.status(400).json({ error: 'tipoAtaque inválido' });
   }
+  
   let vidaAntes = defensor.vida;
   if (!esUltimate && defensor.escudo > 0) {
     const reduccion = ataque * (defensor.escudo / 100);
@@ -403,6 +483,7 @@ router.post('/fights/teams', async (req, res) => {
   }
   let ronda = { atacante: atacante.nombre, defensor: defensor.nombre, desc, vidaAntes, vidaDespues: defensor.vida };
   rondas.push(ronda);
+  
   // Guardar/actualizar pelea
   let nuevoEstado = {
     heroes,
@@ -412,13 +493,19 @@ router.post('/fights/teams', async (req, res) => {
     creador
   };
   let nuevoFightId = fightId;
+  
   if (!fightId) {
     const fights = await fightRepository.getFights();
     nuevoFightId = fights.length > 0 ? Math.max(...fights.map(f => f.fightId)) + 1 : 1;
+    console.log('Guardando nueva pelea de equipos con ID:', nuevoFightId);
     await fightRepository.addFight({ fightId: nuevoFightId, ...nuevoEstado });
   } else {
+    console.log('Actualizando pelea de equipos existente con ID:', fightId);
     await fightRepository.updateFight(fightId, nuevoEstado);
   }
+  
+  console.log('Pelea de equipos guardada/actualizada exitosamente');
+  
   // Unificar la respuesta para ambos casos (1vs1 y equipos)
   const esPeleaEquipos = Array.isArray(heroes) && Array.isArray(villanos);
   if (esPeleaEquipos) {
@@ -586,6 +673,45 @@ router.delete('/fights/:fightId', async (req, res) => {
   }
   await fightRepository.deleteFight(fightId);
   res.json({ message: 'Pelea eliminada exitosamente' });
+});
+
+/**
+ * @swagger
+ * /api/fights:
+ *   delete:
+ *     summary: Eliminar todas las peleas del historial
+ *     tags: [Peleas]
+ *     responses:
+ *       200:
+ *         description: Todas las peleas eliminadas exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 deletedCount:
+ *                   type: integer
+ *       500:
+ *         description: Error al eliminar las peleas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+// DELETE para eliminar todas las peleas
+router.delete('/fights', async (req, res) => {
+  try {
+    const deletedCount = await fightRepository.deleteAllFights();
+    res.json({ 
+      message: 'Todas las peleas han sido eliminadas del historial',
+      deletedCount: deletedCount
+    });
+  } catch (error) {
+    console.error('Error al eliminar todas las peleas:', error);
+    res.status(500).json({ error: 'Error al eliminar las peleas' });
+  }
 });
 
 export default router; 

@@ -1,6 +1,6 @@
 /* ===== LOGIN SPECIFIC STYLES ===== */
 
-/* Video de fondo */
+/* Video de fondo - OCULTO PARA LOGIN Y REGISTRO */
 .background-video-container {
     position: fixed;
     top: 0;
@@ -11,10 +11,12 @@
     overflow: hidden;
     opacity: 0;
     transition: opacity 1s ease-in-out;
+    display: none !important; /* OCULTAR VIDEO DE FONDO */
 }
 
 .background-video-container.loaded {
     opacity: 1;
+    display: none !important; /* MANTENER OCULTO */
 }
 
 #background-video {
@@ -27,6 +29,7 @@
     height: auto;
     transform: translateX(-50%) translateY(-50%);
     object-fit: cover;
+    display: none !important; /* OCULTAR VIDEO */
 }
 
 .video-overlay {
@@ -37,6 +40,7 @@
     height: 100%;
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(2px);
+    display: none !important; /* OCULTAR OVERLAY */
 }
 
 /* Asegurar que las pantallas de login y registro estén por encima del video */
@@ -44,10 +48,12 @@
 #register-screen {
     position: relative;
     z-index: 1;
-    min-height: 100vh;
+    height: 100vh !important;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%); /* FONDO ALTERNATIVO */
+    overflow: hidden !important;
 }
 
 /* Ocultar video de fondo en el dashboard */
@@ -55,6 +61,7 @@
     display: none;
 }
 
+/* FORZAR ESTILOS COMPACTOS - VERSIÓN 1.1 */
 .login-card,
 .register-card {
     position: relative;
@@ -63,6 +70,64 @@
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 156, 0, 0.2);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    padding: 1.5rem !important;
+    width: 100% !important;
+    max-width: 380px !important;
+    margin: 0 !important;
+    max-height: 80vh !important;
+    overflow: hidden !important;
+}
+
+/* Ajustar el contenedor principal para evitar scroll */
+.container {
+    min-height: 100vh !important;
+    height: 100vh !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem !important;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    overflow: hidden !important;
+}
+
+/* Separador visual entre formulario y enlaces */
+.form-separator {
+    height: 1px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 156, 0, 0.3) 50%, 
+        transparent 100%);
+    margin: 1rem 0;
+    width: 100%;
+}
+
+/* Contenedor del botón para mejor centrado */
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.75rem;
+}
+
+.button-container .btn {
+    padding: 0.875rem 2.5rem !important;
+    min-width: 180px;
+}
+
+/* Mejorar espaciado del logo section */
+.logo-section {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.logo-section .game-title {
+    margin-bottom: 0.5rem !important;
+    font-size: 2.2rem !important;
+}
+
+.logo-section .subtitle {
+    margin-bottom: 0 !important;
+    font-size: 0.9rem;
+    opacity: 0.9;
 }
 
 .login-card::before {
@@ -93,10 +158,12 @@
 #login-form {
     position: relative;
     z-index: 2;
+    gap: 0.75rem !important;
 }
 
 #login-form .input-group {
     position: relative;
+    margin-bottom: 0.75rem !important;
 }
 
 #login-form .input-group input {
@@ -104,6 +171,7 @@
     backdrop-filter: blur(10px);
     border: 2px solid transparent;
     transition: all var(--transition-fast);
+    padding: 0.875rem !important;
 }
 
 #login-form .input-group input:focus {
@@ -120,6 +188,7 @@
     font-weight: 700;
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    margin-top: 0.5rem !important;
 }
 
 #login-form .btn-primary::after {
@@ -137,6 +206,61 @@
 }
 
 #login-form .btn-primary:hover::after {
+    left: 100%;
+}
+
+/* Efectos especiales para el formulario de registro */
+#register-form {
+    position: relative;
+    z-index: 2;
+    gap: 0.75rem !important;
+}
+
+#register-form .input-group {
+    position: relative;
+    margin-bottom: 0.75rem !important;
+}
+
+#register-form .input-group input {
+    background: rgba(74, 79, 85, 0.8);
+    backdrop-filter: blur(10px);
+    border: 2px solid transparent;
+    transition: all var(--transition-fast);
+    padding: 0.875rem !important;
+}
+
+#register-form .input-group input:focus {
+    background: rgba(74, 79, 85, 0.9);
+    border-color: var(--btn-secondary);
+    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.2);
+}
+
+/* Botón de registro con efecto especial */
+#register-form .btn-primary {
+    background: linear-gradient(135deg, var(--btn-secondary), var(--btn-secondary-hover));
+    position: relative;
+    overflow: hidden;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 0.5rem !important;
+}
+
+#register-form .btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.3), 
+        transparent);
+    transition: left 0.5s ease;
+}
+
+#register-form .btn-primary:hover::after {
     left: 100%;
 }
 
@@ -200,20 +324,22 @@
 .register-card .game-title {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
     color: var(--text-primary);
+    margin-bottom: 0.5rem !important;
 }
 
 .login-card .subtitle,
 .register-card .subtitle {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
     color: var(--text-secondary);
+    margin-bottom: 1.5rem !important;
 }
 
 /* Responsive específico para login y registro */
 @media (max-width: 480px) {
     .login-card,
     .register-card {
-        margin: 1rem;
-        padding: 2rem;
+        margin: 1rem !important;
+        padding: 1.5rem !important;
     }
     
     #login-form .btn-primary,

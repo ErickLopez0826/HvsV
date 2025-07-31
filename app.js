@@ -36,24 +36,6 @@ app.use('/api', authController)
 // Endpoint de registro de usuario (antes del middleware de autenticación)
 app.use('/api', userController)
 
-// Middleware de autenticación JWT (solo para rutas protegidas)
-function authenticateJWT(req, res, next) {
-  // Verificar token para rutas protegidas
-  const authHeader = req.headers.authorization
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.split(' ')[1]
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-      if (err) {
-        return res.status(403).json({ error: 'Token inválido o expirado' })
-      }
-      req.user = user
-      next()
-    })
-  } else {
-    res.status(401).json({ error: 'Token no proporcionado' })
-  }
-}
-
 // Endpoint público para obtener personajes (sin autenticación)
 app.get('/api/personajes', async (req, res) => {
   try {
@@ -75,10 +57,130 @@ app.get('/api/personajes', async (req, res) => {
   }
 });
 
+// Endpoint público para obtener peleas (sin autenticación)
+app.get('/api/fights', async (req, res) => {
+  try {
+    console.log('Recibida petición GET /api/fights');
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const fightRepository = (await import('./repositories/fightRepository.js')).default;
+    const fights = await fightRepository.getFights();
+    console.log('Peleas obtenidas de la base de datos:', fights.length);
+    console.log('Primera pelea como ejemplo:', fights[0]);
+    
+    const total = fights.length;
+    const totalPages = Math.ceil(total / limit);
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const fightsPage = fights.slice(start, end);
+    
+    console.log('Enviando respuesta con peleas:', fightsPage.length);
+    res.json({ total, totalPages, page, fights: fightsPage });
+  } catch (error) {
+    console.error('Error en GET /api/fights:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Middleware de autenticación (solo para rutas que lo requieren)
+app.use('/api', (req, res, next) => {
+  // Rutas que no requieren autenticación
+  if (req.path === '/test' || req.path === '/auth-test' || req.path === '/personajes') {
+    return next();
+  }
+  
+  // Para /fights, solo permitir GET sin autenticación
+  if (req.path === '/fights' && req.method === 'GET') {
+    return next();
+  }
+  
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token no proporcionado' });
+  }
+  
+  const token = authHeader.substring(7);
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Token inválido' });
+  }
+});
+
+// Endpoint de prueba para verificar el estado de la API
+app.get('/api/test', async (req, res) => {
+  try {
+    console.log('Recibida petición GET /api/test');
+    
+    // Verificar conexión a MongoDB
+    const fightRepository = (await import('./repositories/fightRepository.js')).default;
+    const fights = await fightRepository.getFights();
+    
+    // Verificar personajes
+    const personajeService = (await import('./services/heroService.js')).default;
+    const personajes = await personajeService.getAllPersonajes();
+    
+    res.json({
+      status: 'OK',
+      message: 'API funcionando correctamente',
+      data: {
+        fightsCount: fights.length,
+        personajesCount: personajes.length,
+        fights: fights.slice(0, 3), // Primeras 3 peleas como ejemplo
+        personajes: personajes.slice(0, 3) // Primeros 3 personajes como ejemplo
+      }
+    });
+  } catch (error) {
+    console.error('Error en GET /api/test:', error);
+    res.status(500).json({ 
+      status: 'ERROR',
+      message: 'Error en la API',
+      error: error.message 
+    });
+  }
+});
+
+// Endpoint de prueba para verificar autenticación
+app.get('/api/auth-test', async (req, res) => {
+  try {
+    console.log('Recibida petición GET /api/auth-test');
+    
+    // Verificar si hay token en los headers
+    const authHeader = req.headers.authorization;
+    console.log('Auth header:', authHeader);
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        status: 'ERROR',
+        message: 'No hay token de autenticación',
+        authHeader: authHeader
+      });
+    }
+    
+    const token = authHeader.substring(7);
+    console.log('Token recibido:', token ? 'SÍ' : 'NO');
+    
+    res.json({
+      status: 'OK',
+      message: 'Autenticación válida',
+      token: token ? 'Presente' : 'Ausente'
+    });
+  } catch (error) {
+    console.error('Error en GET /api/auth-test:', error);
+    res.status(500).json({ 
+      status: 'ERROR',
+      message: 'Error en la verificación de autenticación',
+      error: error.message 
+    });
+  }
+});
+
 // Endpoints protegidos (requieren autenticación)
-app.use('/api', authenticateJWT, fightController)
-app.use('/api', authenticateJWT, heroController)
-app.use('/api/equipos', authenticateJWT, teamController)
+app.use('/api', fightController)
+app.use('/api', heroController)
+app.use('/api/equipos', teamController)
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -138,8 +240,13 @@ app.get('/fight-1vs1', (req, res) => {
   res.sendFile('html/fight_1vs1.html', { root: 'public' })
 })
 
+// Ruta específica para historial de batallas
+app.get('/history.html', (req, res) => {
+  res.sendFile('html/history.html', { root: 'public' })
+})
+
 // Ruta de bienvenida
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3001';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3003';
 app.get('/', (req, res) => {
   res.json({
     message: '🎮 API de Héroes vs Villanos funcionando correctamente',
@@ -167,7 +274,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 3003
 app.listen(PORT, _ => {
   console.log("\n" + "=".repeat(70));
   console.log("🎮 HÉROES VS VILLANOS - SERVIDOR INICIADO");

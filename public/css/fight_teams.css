@@ -261,10 +261,11 @@ body {
 }
 
 .character-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
+    width: 80px !important;
+    height: 80px !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    border-radius: 50% !important;
 }
 
 .character-name {
@@ -413,10 +414,11 @@ body {
 }
 
 .combat-character-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
+    width: 80px !important;
+    height: 80px !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    border-radius: 50% !important;
 }
 
 .combat-character-name {
@@ -495,10 +497,11 @@ body {
 }
 
 .target-character img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    object-position: center !important;
     border: 2px solid var(--accent-color);
 }
 
@@ -843,10 +846,11 @@ body {
 }
 
 .team-character img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    object-position: center !important;
     border: 2px solid var(--accent-color);
 }
 
@@ -919,8 +923,8 @@ body {
     .team-character img {
         width: 35px;
         height: 35px;
+        object-position: center;
     }
-}
     
     .character-grid {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -992,4 +996,4 @@ body {
         font-size: 0.6rem;
         max-width: 50px;
     }
- 
+}

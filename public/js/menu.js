@@ -1,5 +1,5 @@
 // ===== CONFIGURACIÓN GLOBAL =====
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'http://localhost:3003/api';
 let currentUser = null;
 
 // ===== CLASE PRINCIPAL DEL MENÚ =====
@@ -132,6 +132,9 @@ class MenuApp {
                 break;
             case 'fight-teams':
                 window.location.href = '/fight-teams';
+                break;
+            case 'history':
+                window.location.href = '/history.html';
                 break;
             default:
                 this.showInfo(`Navegando a ${screen}...`);

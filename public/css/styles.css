@@ -39,12 +39,18 @@
     box-sizing: border-box;
 }
 
+html, body {
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
 body {
     font-family: 'Roboto', sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
+    overflow-y: hidden !important;
 }
 
 /* ===== TIPOGRAFÍA ===== */
@@ -74,12 +80,14 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ===== CONTENEDORES ===== */
 .container {
-    min-height: 100vh;
+    height: 100vh !important;
+    min-height: 100vh !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 1rem;
     background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    overflow: hidden !important;
 }
 
 /* ===== PANTALLAS ===== */
@@ -108,10 +116,10 @@ h1, h2, h3, h4, h5, h6 {
 .register-card {
     background: var(--bg-secondary);
     border-radius: var(--border-radius);
-    padding: 3rem;
+    padding: 2rem;
     box-shadow: var(--shadow-heavy);
     width: 100%;
-    max-width: 400px;
+    max-width: 350px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -120,7 +128,7 @@ h1, h2, h3, h4, h5, h6 {
 .form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .input-group {
@@ -207,41 +215,40 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-secondary:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
 }
 
 .btn-card {
-    background: linear-gradient(135deg, var(--btn-primary), var(--btn-primary-hover));
+    background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
     color: var(--text-primary);
-    margin-top: 1rem;
-    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
+    border-color: var(--btn-primary);
 }
 
 /* ===== ENLACES ===== */
 a {
-    color: var(--btn-secondary);
+    color: var(--btn-primary);
     text-decoration: none;
-    transition: color var(--transition-fast);
+    transition: all var(--transition-fast);
 }
 
 a:hover {
-    color: var(--btn-secondary-hover);
+    color: var(--btn-primary-hover);
 }
 
+/* ===== PIE DE FORMULARIO ===== */
 .form-footer {
+    margin-top: 1rem;
     text-align: center;
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
 }
 
 .form-footer p {
     color: var(--text-secondary);
+    margin: 0;
 }
 
 /* ===== ANIMACIONES ===== */
@@ -268,11 +275,11 @@ a:hover {
 }
 
 .fade-in-up {
-    animation: fadeInUp var(--transition-medium);
+    animation: fadeInUp 0.6s ease-out;
 }
 
 .scale-in {
-    animation: scaleIn var(--transition-medium);
+    animation: scaleIn 0.6s ease-out;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -283,7 +290,8 @@ a:hover {
     
     .login-card,
     .register-card {
-        padding: 2rem;
+        margin: 0;
+        padding: 1.5rem;
     }
     
     .game-title {
@@ -298,6 +306,7 @@ a:hover {
 @media (max-width: 480px) {
     .login-card,
     .register-card {
+        margin: 0.5rem;
         padding: 1.5rem;
     }
     

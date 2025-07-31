@@ -201,10 +201,11 @@ body {
 }
 
 .member-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    border-radius: 50% !important;
     transition: var(--transition-fast);
 }
 
@@ -425,8 +426,8 @@ body {
 }
 
 .character-avatar {
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--btn-primary), var(--btn-secondary));
     display: flex;
@@ -439,10 +440,11 @@ body {
 }
 
 .character-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    border-radius: 50% !important;
     transition: var(--transition-fast);
 }
 
@@ -724,6 +726,7 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
 }
 
 .stats-character-info {
@@ -795,5 +798,173 @@ body {
     .stats-character-image {
         width: 100px;
         height: 100px;
+    }
+} 
+
+/* ===== MODAL DE ESTADÍSTICAS CON ASPECTO 4:3 VERTICAL ===== */
+.stats-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.stats-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.popup-container {
+    width: 60vw;
+    max-width: 600px;
+    height: 80vw;
+    max-height: 800px;
+    background: rgba(28, 30, 34, 0.95);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 156, 0, 0.3);
+    border-radius: var(--border-radius);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.character-image {
+    flex: 0 0 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.main-image {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 3px solid rgba(255, 156, 0, 0.3);
+}
+
+.stats-table {
+    flex: 0 0 50%;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--border-radius-small);
+    padding: 1.5rem;
+    margin: 1rem;
+    border-left: 4px solid var(--btn-primary);
+    overflow-y: auto;
+    max-height: 300px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.stat-value {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.close-stats-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 71, 87, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    z-index: 10;
+}
+
+.close-stats-btn:hover {
+    background: rgba(255, 71, 87, 1);
+    transform: scale(1.1);
+}
+
+/* Responsive para el modal de estadísticas */
+@media (max-width: 768px) {
+    .popup-container {
+        width: 90vw;
+        height: 85vw;
+        max-height: 600px;
+    }
+    
+    .character-image {
+        flex: 0 0 40%;
+        padding: 1rem;
+    }
+    
+    .main-image {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .stats-table {
+        padding: 1rem;
+        margin: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .popup-container {
+        width: 95vw;
+        height: 90vw;
+    }
+    
+    .character-image {
+        flex: 0 0 35%;
+        padding: 0.75rem;
+    }
+    
+    .main-image {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .stats-table {
+        padding: 0.75rem;
+        margin: 0.25rem;
+    }
+    
+    .stat-label,
+    .stat-value {
+        font-size: 0.9rem;
     }
 } 

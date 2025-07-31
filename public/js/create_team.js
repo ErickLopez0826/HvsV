@@ -1,5 +1,5 @@
 // ===== CONFIGURACIÓN GLOBAL =====
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:3003/api';
 let currentUser = null;
 let selectedTeamType = 'superheroes';
 let selectedCharacters = [];
@@ -71,13 +71,6 @@ class CreateTeamApp {
             if (backBtn) {
                 backBtn.addEventListener('click', () => {
                     window.location.href = '/menu.html';
-                });
-            }
-
-            const logoutBtn = document.getElementById('logout-btn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', () => {
-                    this.handleLogout();
                 });
             }
 
@@ -255,11 +248,6 @@ class CreateTeamApp {
                 console.log('Creando tarjeta para:', character.nombre);
                 const card = this.createCharacterCard(character);
                 
-                // Agregar event listener para selección
-                card.addEventListener('click', () => {
-                    this.toggleCharacterSelection(character);
-                });
-                
                 grid.appendChild(card);
             });
 
@@ -306,11 +294,30 @@ class CreateTeamApp {
                             <span>Vida</span>
                         </div>
                     </div>
-                    <button class="btn btn-secondary stats-btn" onclick="createTeamApp.showCharacterStats(${character.id})">
+                    <button class="btn btn-secondary stats-btn" data-character-id="${character.id}">
                         📊 Estadísticas
                     </button>
                 </div>
             `;
+            
+            // Agregar event listener para selección (solo en la tarjeta, no en el botón)
+            card.addEventListener('click', (e) => {
+                // No seleccionar si se hace clic en el botón de estadísticas
+                if (e.target.classList.contains('stats-btn') || e.target.closest('.stats-btn')) {
+                    e.stopPropagation();
+                    return;
+                }
+                this.toggleCharacterSelection(character);
+            });
+            
+            // Event listener específico para el botón de estadísticas
+            const statsBtn = card.querySelector('.stats-btn');
+            if (statsBtn) {
+                statsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.showCharacterStats(character.id);
+                });
+            }
             
             return card;
         } catch (error) {
@@ -520,11 +527,6 @@ class CreateTeamApp {
 
             characters.forEach(character => {
                 const card = this.createCharacterCard(character);
-                
-                // Agregar event listener para selección
-                card.addEventListener('click', () => {
-                    this.toggleCharacterSelection(character);
-                });
                 
                 grid.appendChild(card);
             });
@@ -842,95 +844,95 @@ class CreateTeamApp {
             return;
         }
 
+        console.log('Mostrando estadísticas para:', character.nombre);
+
         // Crear modal de estadísticas si no existe
         let statsModal = document.getElementById('character-stats-modal');
         if (!statsModal) {
             statsModal = document.createElement('div');
             statsModal.id = 'character-stats-modal';
-            statsModal.className = 'modal hidden';
-            statsModal.innerHTML = `
-                <div class="modal-content stats-modal-content">
-                    <div class="stats-modal-header">
-                        <h3 id="stats-character-name">${character.nombre}</h3>
-                        <button class="btn btn-secondary close-stats-btn" onclick="createTeamApp.closeCharacterStats()">
-                            ❌ Cerrar
-                        </button>
-                    </div>
-                    <div class="stats-modal-body">
-                        <div class="stats-character-image">
-                            <img id="stats-character-img" src="" alt="${character.nombre}">
-                        </div>
-                        <div class="stats-character-info">
-                            <div class="stats-grid" id="stats-character-stats">
-                                <!-- Las estadísticas se cargarán dinámicamente -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            statsModal.className = 'modal stats-modal';
             document.body.appendChild(statsModal);
         }
 
-        // Actualizar contenido del modal
-        const imageName = CHARACTER_IMAGES[character.nombre] || '../images/Personajes/Genji.webp';
-        const imagePath = imageName.replace('../', '/');
-        const bnImageName = CHARACTER_BN_IMAGES[character.nombre] || '../images/Personajes/Genji BN.webp';
-        const bnImagePath = bnImageName.replace('../', '/');
+        // Obtener las imágenes del personaje
+        const characterImage = CHARACTER_IMAGES[character.nombre] || '../images/Personajes/Genji.webp';
+        const bnImage = CHARACTER_BN_IMAGES[character.nombre] || '../images/Personajes/Genji BN.webp';
 
-        document.getElementById('stats-character-name').textContent = character.nombre;
-        document.getElementById('stats-character-img').src = imagePath;
-        
-        // Establecer imagen BN como fondo del modal
-        statsModal.style.backgroundImage = `url(${bnImagePath})`;
-        statsModal.style.backgroundSize = 'cover';
-        statsModal.style.backgroundPosition = 'center';
-        statsModal.style.backgroundRepeat = 'no-repeat';
+        console.log('Imagen del personaje:', characterImage);
+        console.log('Imagen BN para fondo:', bnImage);
 
-        // Actualizar estadísticas
-        document.getElementById('stats-character-stats').innerHTML = `
-            <div class="stat-item">
-                <span class="stat-label">Tipo</span>
-                <span class="stat-value">${character.tipo.toUpperCase()}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Nivel</span>
-                <span class="stat-value">${character.nivel}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Vida</span>
-                <span class="stat-value">${character.vida}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Fuerza</span>
-                <span class="stat-value">${character.fuerza}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Experiencia</span>
-                <span class="stat-value">${character.experiencia}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Escudo</span>
-                <span class="stat-value">${character.escudo}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Daño Ultimate</span>
-                <span class="stat-value">${character.dañoUltimate}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Umbral Ultimate</span>
-                <span class="stat-value">${character.umbralUltimate}</span>
+        // Actualizar contenido del modal con una única tabla de estadísticas
+        statsModal.innerHTML = `
+            <div class="popup-container">
+                <div class="character-image">
+                    <img src="${characterImage}" alt="${character.nombre}" class="main-image">
+                </div>
+                
+                <div class="stats-table">
+                    <div class="stat-item">
+                        <span class="stat-label">Tipo</span>
+                        <span class="stat-value">${character.tipo.toUpperCase()}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Nivel</span>
+                        <span class="stat-value">${character.nivel}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Vida</span>
+                        <span class="stat-value">${character.vida}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Fuerza</span>
+                        <span class="stat-value">${character.fuerza || 0}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Escudo</span>
+                        <span class="stat-value">${character.escudo || 0}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Experiencia</span>
+                        <span class="stat-value">${character.experiencia || 0}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Daño Ultimate</span>
+                        <span class="stat-value">${character.dañoUltimate || 0}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Umbral Ultimate</span>
+                        <span class="stat-value">${character.umbralUltimate || 0}</span>
+                    </div>
+                </div>
+                
+                <button class="close-stats-btn" onclick="createTeamApp.closeCharacterStats()">
+                    <span>×</span>
+                </button>
             </div>
         `;
 
-        // Mostrar modal
-        statsModal.classList.remove('hidden');
+        // Mostrar modal primero
+        statsModal.classList.add('show');
+
+        // Establecer imagen BN como fondo del modal con overlay semitransparente
+        // Usar setTimeout para asegurar que el modal se haya renderizado
+        setTimeout(() => {
+            const backgroundStyle = `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${bnImage})`;
+            statsModal.style.backgroundImage = backgroundStyle;
+            statsModal.style.backgroundSize = 'cover';
+            statsModal.style.backgroundPosition = 'center';
+            statsModal.style.backgroundRepeat = 'no-repeat';
+            console.log('Fondo BN aplicado:', backgroundStyle);
+            
+            // Verificar que el estilo se aplicó
+            console.log('Background style aplicado:', statsModal.style.backgroundImage);
+        }, 200);
     }
 
     // Cerrar modal de estadísticas
     closeCharacterStats() {
         const statsModal = document.getElementById('character-stats-modal');
         if (statsModal) {
-            statsModal.classList.add('hidden');
+            statsModal.classList.remove('show');
         }
     }
 }

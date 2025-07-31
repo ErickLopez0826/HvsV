@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Héroes vs Villanos - Juego de Batalla</title>
     
     <!-- Fuentes de Google -->
@@ -11,10 +14,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/styles.css">
-    <link rel="stylesheet" href="../css/login.css">
-    <link rel="stylesheet" href="../css/register.css">
-    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/styles.css?v=13.0">
+    <link rel="stylesheet" href="../css/login.css?v=13.0">
+    <link rel="stylesheet" href="../css/register.css?v=13.0">
+    <link rel="stylesheet" href="../css/dashboard.css?v=13.0">
 </head>
 <body>
     <!-- Video de fondo para login/registro -->
@@ -30,11 +33,13 @@
     <div id="login-screen" class="screen active">
         <div class="container">
             <div class="login-card">
+                <!-- Sección del título principal -->
                 <div class="logo-section">
                     <h1 class="game-title">OVERWATCH</h1>
                     <p class="subtitle">¡Entra en la batalla!</p>
                 </div>
                 
+                <!-- Formulario de login -->
                 <form id="login-form" class="form">
                     <div class="input-group">
                         <label for="login-username">Usuario</label>
@@ -46,11 +51,17 @@
                         <input type="password" id="login-password" name="password" required>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">
-                        <span>Iniciar Sesión</span>
-                    </button>
+                    <div class="button-container">
+                        <button type="submit" class="btn btn-primary">
+                            <span>Iniciar Sesión</span>
+                        </button>
+                    </div>
                 </form>
                 
+                <!-- Separador visual -->
+                <div class="form-separator"></div>
+                
+                <!-- Enlace de registro -->
                 <div class="form-footer">
                     <p>¿No tienes cuenta? <a href="#" id="show-register">Crea una aquí</a></p>
                 </div>
@@ -62,11 +73,13 @@
     <div id="register-screen" class="screen">
         <div class="container">
             <div class="register-card">
+                <!-- Sección del título principal -->
                 <div class="logo-section">
                     <h1 class="game-title">Crear Cuenta</h1>
                     <p class="subtitle">Únete a la batalla</p>
                 </div>
                 
+                <!-- Formulario de registro -->
                 <form id="register-form" class="form">
                     <div class="input-group">
                         <label for="register-name">Usuario</label>
@@ -78,11 +91,17 @@
                         <input type="password" id="register-password" name="password" required>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">
-                        <span>Crear Cuenta</span>
-                    </button>
+                    <div class="button-container">
+                        <button type="submit" class="btn btn-primary">
+                            <span>Crear Cuenta</span>
+                        </button>
+                    </div>
                 </form>
                 
+                <!-- Separador visual -->
+                <div class="form-separator"></div>
+                
+                <!-- Enlace de login -->
                 <div class="form-footer">
                     <p>¿Ya tienes cuenta? <a href="#" id="show-login">Inicia sesión aquí</a></p>
                 </div>
@@ -135,5 +154,26 @@
 
     <!-- JavaScript -->
     <script src="../js/main.js"></script>
+    <script>
+        // Forzar recarga de estilos CSS
+        function reloadStyles() {
+            const links = document.querySelectorAll('link[rel="stylesheet"]');
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href) {
+                    link.setAttribute('href', href.split('?')[0] + '?v=' + Date.now());
+                }
+            });
+        }
+        
+        // Ejecutar al cargar la página
+        window.addEventListener('load', function() {
+            console.log('🔄 Forzando recarga de estilos CSS...');
+            reloadStyles();
+        });
+        
+        // También ejecutar después de un breve delay
+        setTimeout(reloadStyles, 100);
+    </script>
 </body>
 </html> 

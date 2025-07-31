@@ -4,16 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pelea de Equipos - Héroes vs Villanos</title>
-    <link rel="stylesheet" href="../css/fight_teams.css">
+    <link rel="stylesheet" href="../css/fight_teams.css?v=13.0">
 </head>
 <body>
     <!-- Header con navegación -->
     <header class="fight-header">
         <div class="header-content">
             <h1>⚔️ Pelea de Equipos</h1>
-            <button class="btn btn-secondary" onclick="window.location.href='/menu'">
-                🏠 Volver al Menú
-            </button>
+            <div class="header-buttons">
+                <button class="btn btn-secondary" onclick="window.location.href='/menu'">
+                    🏠 Volver al Menú
+                </button>
+                <button class="btn btn-secondary" onclick="fightTeamsApp.debugState()" style="margin-left: 10px;">
+                    🐛 Debug
+                </button>
+            </div>
         </div>
     </header>
 
@@ -191,10 +196,10 @@
                 <!-- Resumen de la pelea -->
             </div>
             <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="fightTeamsApp.cancelFight()">
+                <button id="cancel-fight-btn" class="btn btn-secondary">
                     ❌ Cancelar
                 </button>
-                <button class="btn btn-primary" onclick="fightTeamsApp.confirmFight()">
+                <button id="confirm-fight-btn" class="btn btn-primary">
                     ⚔️ Confirmar Pelea
                 </button>
             </div>
@@ -209,7 +214,7 @@
                 <!-- Contenido del resultado -->
             </div>
             <div class="modal-actions">
-                <button class="btn btn-primary" onclick="fightTeamsApp.newFight()">
+                <button id="new-fight-btn" class="btn btn-primary">
                     🎮 Nueva Pelea
                 </button>
                 <button class="btn btn-secondary" onclick="window.location.href='/menu'">

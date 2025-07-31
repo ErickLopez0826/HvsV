@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Historial de Batallas - Héroes vs Villanos</title>
+    
+    <!-- Fuentes de Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/styles.css?v=13.0">
+    <link rel="stylesheet" href="../css/history.css?v=13.0">
+</head>
+<body>
+    <!-- Header -->
+    <header class="history-header">
+        <div class="header-content">
+            <h1 class="page-title">Historial de Batallas</h1>
+            <button id="back-to-menu" class="btn btn-secondary">
+                <span>Volver al Menú</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="history-main">
+        <div class="container">
+            
+            <!-- Filtros - Arriba -->
+            <section class="history-filters">
+                <div class="filter-group">
+                    <label for="fight-type-filter">Tipo de Batalla:</label>
+                    <select id="fight-type-filter" class="filter-select">
+                        <option value="">Todos</option>
+                        <option value="1v1">1 vs 1</option>
+                        <option value="3v3">3 vs 3</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="date-filter">Ordenar por:</label>
+                    <select id="date-filter" class="filter-select">
+                        <option value="newest">Más recientes</option>
+                        <option value="oldest">Más antiguos</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <button id="clear-history-btn" class="btn btn-danger">
+                        <span>🗑️ Eliminar Todo el Historial</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Sección de batallas -->
+            <section class="battle-section">
+                <div class="battle-grid" id="fights-list">
+                    <!-- Las batallas se cargarán dinámicamente aquí -->
+                </div>
+                
+                <!-- Estado de carga -->
+                <div id="loading-state" class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Cargando historial de batallas...</p>
+                </div>
+                
+                <!-- Estado vacío -->
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <div class="empty-icon">⚔️</div>
+                    <h3>No hay batallas registradas</h3>
+                    <p>¡Ve y libra algunas batallas para ver tu historial aquí!</p>
+                </div>
+            </section>
+
+            <!-- Paginación - Abajo -->
+            <section class="pagination-container">
+                <div class="pagination-info">
+                    <span id="pagination-info">Mostrando 0 de 0 batallas</span>
+                </div>
+                
+                <div class="pagination-controls">
+                    <button id="prev-page" class="btn btn-secondary" disabled>
+                        <span>Anterior</span>
+                    </button>
+                    
+                    <div class="page-numbers" id="page-numbers">
+                        <!-- Números de página se generarán dinámicamente -->
+                    </div>
+                    
+                    <button id="next-page" class="btn btn-secondary" disabled>
+                        <span>Siguiente</span>
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="../js/main.js?v=13.0"></script>
+    <script src="../js/history.js?v=13.0"></script>
+</body>
+</html> 

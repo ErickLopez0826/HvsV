@@ -5,6 +5,7 @@ let currentFight = null;
 let isFightInProgress = false;
 let allCharacters = [];
 let availableTeams = [];
+let currentFightId = null; // ID de la pelea actual en la base de datos
 
 // Nuevas variables para el sistema mejorado
 let playerTeamHealth = {};
@@ -26,8 +27,6 @@ const CHARACTER_IMAGES = {
     'Sombra': '../images/Personajes/Sombra.webp'
 };
 
-
-
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🎮 Inicializando Pelea de Equipos...');
@@ -38,11 +37,29 @@ document.addEventListener('DOMContentLoaded', async function() {
 const fightTeamsApp = {
     // Inicializar la aplicación
     async init() {
+        console.log('🎮 Inicializando Pelea de Equipos...');
+        
+        // Verificar y crear token si es necesario
+        const tokenOk = await this.checkAndCreateTestToken();
+        if (!tokenOk) {
+            console.error('❌ No se pudo obtener token de autenticación');
+            this.showError('Error de autenticación. Redirigiendo al login...');
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+            return;
+        }
+        
+        // Verificar autenticación
+        if (!this.checkAuthentication()) {
+            console.error('Usuario no autenticado');
+            return;
+        }
+        
         this.loadPlayerTeam();
         await this.loadCharacters();
         await this.loadAvailableTeams();
         this.setupEventListeners();
-        this.checkAuthentication();
     },
 
     // Verificar autenticación
@@ -59,6 +76,80 @@ const fightTeamsApp = {
         }
         
         return true;
+    },
+
+    // Verificar y crear token de prueba si es necesario
+    async checkAndCreateTestToken() {
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        
+        console.log('=== VERIFICACIÓN DE TOKEN EQUIPOS ===');
+        console.log('Token existe:', !!token);
+        console.log('User existe:', !!user);
+        
+        if (!token || !user) {
+            console.log('🔧 Creando token de prueba...');
+            
+            try {
+                // Intentar crear un usuario de prueba
+                const testUser = {
+                    name: 'TestUser',
+                    password: 'test123'
+                };
+                
+                const response = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testUser)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Usuario de prueba creado:', data);
+                    
+                    // Intentar hacer login con el usuario de prueba
+                    const loginResponse = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(testUser)
+                    });
+                    
+                    if (loginResponse.ok) {
+                        const loginData = await loginResponse.json();
+                        localStorage.setItem('token', loginData.token);
+                        localStorage.setItem('user', JSON.stringify(loginData.user));
+                        console.log('✅ Login exitoso con usuario de prueba');
+                        return true;
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error creando token de prueba:', error);
+            }
+            
+            console.error('❌ No se pudo crear token de prueba');
+            return false;
+        }
+        
+        return true;
+    },
+
+    // Probar autenticación
+    async testAuth() {
+        console.log('🧪 Probando autenticación equipos...');
+        
+        try {
+            const response = await this.fetchWithAuth('/api/auth-test');
+            const data = await response.json();
+            console.log('✅ Test de autenticación exitoso:', data);
+            return true;
+        } catch (error) {
+            console.error('❌ Test de autenticación falló:', error);
+            return false;
+        }
     },
 
     // Cargar equipo del jugador (ahora es opcional)
@@ -104,175 +195,166 @@ const fightTeamsApp = {
             
         } catch (error) {
             console.error('Error cargando personajes:', error);
-            this.showError('Error al cargar los personajes.');
+            this.showError('Error al cargar los personajes. Intenta recargar la página.');
         }
     },
 
     // Cargar equipos disponibles
     async loadAvailableTeams() {
         try {
-            const response = await this.fetchWithAuth('/api/equipos');
-
-            if (!response.ok) {
-                throw new Error('Error al cargar equipos disponibles');
-            }
-
-            const data = await response.json();
-            // Transformar el formato de equipos para que coincida con el esperado
-            availableTeams = data.equipos.map(equipo => ({
-                nombre: equipo.nombre,
-                bando: equipo.integrantes[0].tipo === 'superheroe' ? 'Superhéroes (Overwatch)' : 'Villanos (Blackwatch)',
-                characters: equipo.integrantes.map(integrante => {
-                    // Buscar el personaje completo en allCharacters
-                    const character = allCharacters.find(char => char.id === integrante.id);
-                    return character || integrante;
-                })
-            }));
+            // Crear equipos basados en los personajes disponibles
+            const heroes = allCharacters.filter(char => char.tipo === 'superheroe');
+            const villains = allCharacters.filter(char => char.tipo === 'villano');
             
-            console.log(`📋 Cargados ${availableTeams.length} equipos disponibles`);
+            availableTeams = [
+                {
+                    id: 'heroes1',
+                    nombre: 'Equipo Héroes 1',
+                    characters: heroes.slice(0, 3),
+                    tipo: 'superheroe'
+                },
+                {
+                    id: 'heroes2', 
+                    nombre: 'Equipo Héroes 2',
+                    characters: heroes.slice(3, 6),
+                    tipo: 'superheroe'
+                },
+                {
+                    id: 'villains1',
+                    nombre: 'Equipo Villanos 1', 
+                    characters: villains.slice(0, 3),
+                    tipo: 'villano'
+                },
+                {
+                    id: 'villains2',
+                    nombre: 'Equipo Villanos 2',
+                    characters: villains.slice(3, 6), 
+                    tipo: 'villano'
+                }
+            ];
+            
+            console.log(`👥 Cargados ${availableTeams.length} equipos disponibles`);
             
         } catch (error) {
-            console.error('Error cargando equipos disponibles:', error);
-            // No mostrar error, usar equipos aleatorios
+            console.error('Error cargando equipos:', error);
+            this.showError('Error al cargar los equipos disponibles.');
         }
     },
 
-    // Renderizar equipo del jugador
-    renderPlayerTeam() {
-        if (!playerTeam) {
-            document.getElementById('player-team-characters').innerHTML = 
-                '<div class="no-team-message">Selecciona tu equipo para comenzar la batalla</div>';
-            document.getElementById('player-team-name').textContent = 'Selecciona tu equipo';
-            document.getElementById('player-team-level').textContent = '-';
-            document.getElementById('player-team-power').textContent = '-';
-            return;
-        }
-
-        const container = document.getElementById('player-team-characters');
-        container.innerHTML = '';
-
-        playerTeam.characters.forEach(character => {
-            const card = this.createCharacterCard(character);
-            container.appendChild(card);
+    // Configurar event listeners
+    setupEventListeners() {
+        // Botones de selección de equipos
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'select-player-team-btn') {
+                this.showPlayerTeamSelectionModal();
+            }
+            if (e.target.id === 'select-enemy-team-btn') {
+                this.showTeamSelectionModal();
+            }
+            if (e.target.id === 'random-team-btn') {
+                this.generateRandomTeam();
+            }
+            if (e.target.id === 'select-team-btn') {
+                this.showTeamSelectionModal();
+            }
         });
-
-        // Actualizar nombre y estadísticas del equipo
-        document.getElementById('player-team-name').textContent = playerTeam.nombre || 'Mi Equipo';
-        this.updateTeamStats('player');
-    },
-
-    // Crear tarjeta de personaje
-    createCharacterCard(character) {
-        const card = document.createElement('div');
-        card.className = 'character-card';
-        card.dataset.characterId = character.id;
         
-        const imageName = CHARACTER_IMAGES[character.nombre] || 'Genji.webp';
-        const imagePath = imageName.replace('../', '/');
+        // Botón de inicio de pelea
+        document.getElementById('start-fight-btn').addEventListener('click', () => {
+            this.showConfirmModal();
+        });
         
-        card.innerHTML = `
-            <div class="character-avatar">
-                <img src="${imagePath}" alt="${character.nombre}" class="character-image">
-            </div>
-            <div class="character-name">${character.nombre}</div>
-            <div class="character-type">${character.tipo.toUpperCase()}</div>
-            <div class="character-stats">
-                <div class="stat">
-                    <span class="stat-label">Nivel</span>
-                    <span class="stat-value">${character.nivel}</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-label">Vida</span>
-                    <span class="stat-value">${character.vida}</span>
-                </div>
-            </div>
-        `;
+        // Botones de acción
+        document.getElementById('attack-btn').addEventListener('click', () => {
+            this.performAction('basico');
+        });
         
-        return card;
+        document.getElementById('special-btn').addEventListener('click', () => {
+            this.performAction('especial');
+        });
+        
+        document.getElementById('ultimate-btn').addEventListener('click', () => {
+            this.performAction('ultimate');
+        });
+        
+        // Botones de modal
+        document.getElementById('confirm-fight-btn').addEventListener('click', () => {
+            this.confirmFight();
+        });
+        
+        document.getElementById('cancel-fight-btn').addEventListener('click', () => {
+            this.cancelFight();
+        });
+        
+        // Botón nueva pelea
+        document.getElementById('new-fight-btn').addEventListener('click', () => {
+            this.newFight();
+        });
     },
 
     // Generar equipo aleatorio
     generateRandomTeam() {
-        const teamSize = 3;
-        const shuffled = allCharacters.sort(() => 0.5 - Math.random());
-        const randomTeam = shuffled.slice(0, teamSize);
+        const heroes = allCharacters.filter(char => char.tipo === 'superheroe');
+        const villains = allCharacters.filter(char => char.tipo === 'villano');
         
+        const randomHeroes = heroes.sort(() => 0.5 - Math.random()).slice(0, 3);
+        const randomVillains = villains.sort(() => 0.5 - Math.random()).slice(0, 3);
+        
+        // Crear equipo aleatorio para el enemigo
         enemyTeam = {
             id: 'random-' + Date.now(),
-            name: 'Equipo Aleatorio',
-            characters: randomTeam
+            nombre: 'Equipo Aleatorio',
+            characters: randomVillains,
+            tipo: 'villano'
         };
         
         this.renderEnemyTeam();
+        this.updateTeamStats('enemy');
         this.updateStartButton();
     },
 
-    // Mostrar modal de selección de equipo
+    // Mostrar modal de selección de equipo enemigo
     showTeamSelectionModal() {
         const modal = document.getElementById('team-select-modal');
-        const container = document.getElementById('available-teams');
+        const content = document.getElementById('available-teams');
         
-        container.innerHTML = '';
-        
-        if (availableTeams.length === 0) {
-            container.innerHTML = '<div class="no-teams-message">No hay equipos disponibles. Usa "Equipo Aleatorio" en su lugar.</div>';
-        } else {
-            availableTeams.forEach(team => {
-                const teamCard = document.createElement('div');
-                teamCard.className = 'team-card';
-                teamCard.onclick = () => this.selectEnemyTeam(team);
-                
-                const teamPower = this.calculateTeamPower(team.characters);
-                const avgLevel = Math.round(team.characters.reduce((sum, char) => sum + char.nivel, 0) / team.characters.length);
-                
-                teamCard.innerHTML = `
-                    <div class="team-card-header">
+        content.innerHTML = `
+            <h3>Selecciona el Equipo Enemigo</h3>
+            <div class="teams-grid">
+                ${availableTeams.filter(team => team.tipo === 'villano').map(team => `
+                    <div class="team-card" onclick="fightTeamsApp.selectEnemyTeam('${team.id}')">
                         <h4>${team.nombre}</h4>
-                        <span class="team-type">${team.bando}</span>
+                        <div class="team-characters">
+                            ${team.characters.map(char => `
+                                <div class="team-character">
+                                    <img src="../images/Personajes/${this.getCharacterImageName(char.nombre)}.webp" alt="${char.nombre}" class="character-image">
+                                    <span>${char.nombre}</span>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
-                    <div class="team-card-stats">
-                        <span>Nivel: ${avgLevel}</span>
-                        <span>Poder: ${teamPower}</span>
-                    </div>
-                    <div class="team-card-characters">
-                        ${team.characters.map(char => `
-                            <div class="team-character">
-                                <img src="${CHARACTER_IMAGES[char.nombre] || '../images/Personajes/Genji.webp'}" alt="${char.nombre}">
-                                <span>${char.nombre}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-                
-                container.appendChild(teamCard);
-            });
-        }
+                `).join('')}
+            </div>
+            <div class="modal-actions">
+                <button onclick="fightTeamsApp.cancelTeamSelection()" class="btn btn-secondary">Cancelar</button>
+            </div>
+        `;
         
         modal.classList.remove('hidden');
     },
 
     // Seleccionar equipo enemigo
-    selectEnemyTeam(team) {
-        enemyTeam = team;
-        
-        // Remover selección anterior
-        document.querySelectorAll('.team-card.selected').forEach(card => {
-            card.classList.remove('selected');
-        });
-        
-        // Seleccionar nuevo equipo
-        const card = event.target.closest('.team-card');
-        if (card) {
-            card.classList.add('selected');
+    selectEnemyTeam(teamId) {
+        const team = availableTeams.find(t => t.id === teamId);
+        if (team) {
+            enemyTeam = team;
+            this.renderEnemyTeam();
+            this.updateTeamStats('enemy');
+            this.updateStartButton();
+            
+            // Ocultar modal
+            document.getElementById('team-select-modal').classList.add('hidden');
         }
-        
-        this.renderEnemyTeam();
-        this.updateStartButton();
-        
-        // Cerrar modal después de un breve delay
-        setTimeout(() => {
-            this.cancelTeamSelection();
-        }, 500);
     },
 
     // Cancelar selección de equipo
@@ -283,55 +365,45 @@ const fightTeamsApp = {
     // Mostrar modal de selección de equipo del jugador
     showPlayerTeamSelectionModal() {
         const modal = document.getElementById('player-team-select-modal');
-        const teamList = document.getElementById('available-player-teams');
+        const content = document.getElementById('available-player-teams');
         
-        if (availableTeams.length === 0) {
-            this.showError('No hay equipos disponibles. Crea equipos primero.');
-            return;
-        }
-        
-        teamList.innerHTML = '';
-        
-        availableTeams.forEach(team => {
-            const teamCard = document.createElement('div');
-            teamCard.className = 'team-card';
-            teamCard.onclick = () => this.selectPlayerTeam(team);
-            
-            const teamPower = this.calculateTeamPower(team.characters);
-            const avgLevel = Math.round(team.characters.reduce((sum, char) => sum + char.nivel, 0) / team.characters.length);
-            
-            teamCard.innerHTML = `
-                <div class="team-card-header">
-                    <h4>${team.nombre}</h4>
-                    <span class="team-type">${team.bando}</span>
-                </div>
-                <div class="team-card-stats">
-                    <span>Nivel: ${avgLevel}</span>
-                    <span>Poder: ${teamPower}</span>
-                </div>
-                <div class="team-card-characters">
-                    ${team.characters.map(char => `
-                        <div class="team-character">
-                            <img src="${CHARACTER_IMAGES[char.nombre] || '../images/Personajes/Genji.webp'}" alt="${char.nombre}">
-                            <span>${char.nombre}</span>
+        content.innerHTML = `
+            <h3>Selecciona tu Equipo</h3>
+            <div class="teams-grid">
+                ${availableTeams.filter(team => team.tipo === 'superheroe').map(team => `
+                    <div class="team-card" onclick="fightTeamsApp.selectPlayerTeam('${team.id}')">
+                        <h4>${team.nombre}</h4>
+                        <div class="team-characters">
+                            ${team.characters.map(char => `
+                                <div class="team-character">
+                                    <img src="../images/Personajes/${this.getCharacterImageName(char.nombre)}.webp" alt="${char.nombre}" class="character-image">
+                                    <span>${char.nombre}</span>
+                                </div>
+                            `).join('')}
                         </div>
-                    `).join('')}
-                </div>
-            `;
-            
-            teamList.appendChild(teamCard);
-        });
+                    </div>
+                `).join('')}
+            </div>
+            <div class="modal-actions">
+                <button onclick="fightTeamsApp.cancelPlayerTeamSelection()" class="btn btn-secondary">Cancelar</button>
+            </div>
+        `;
         
         modal.classList.remove('hidden');
     },
 
     // Seleccionar equipo del jugador
-    selectPlayerTeam(team) {
-        playerTeam = team;
-        document.getElementById('player-team-select-modal').classList.add('hidden');
-        this.renderPlayerTeam();
-        this.updateStartButton();
-        this.showSuccess(`Equipo "${team.nombre}" seleccionado`);
+    selectPlayerTeam(teamId) {
+        const team = availableTeams.find(t => t.id === teamId);
+        if (team) {
+            playerTeam = team;
+            this.renderPlayerTeam();
+            this.updateTeamStats('player');
+            this.updateStartButton();
+            
+            // Ocultar modal
+            document.getElementById('player-team-select-modal').classList.add('hidden');
+        }
     },
 
     // Cancelar selección de equipo del jugador
@@ -339,43 +411,79 @@ const fightTeamsApp = {
         document.getElementById('player-team-select-modal').classList.add('hidden');
     },
 
+    // Renderizar equipo del jugador
+    renderPlayerTeam() {
+        const container = document.getElementById('player-team-characters');
+        
+        if (!playerTeam) {
+            container.innerHTML = `
+                <div class="team-placeholder">
+                    <p>Selecciona tu equipo para comenzar</p>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="team-info">
+                    <h3>${playerTeam.nombre}</h3>
+                    <div class="team-characters">
+                        ${playerTeam.characters.map(char => `
+                            <div class="team-character">
+                                <img src="../images/Personajes/${this.getCharacterImageName(char.nombre)}.webp" alt="${char.nombre}" class="character-image">
+                                <span>${char.nombre}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+    },
+
     // Renderizar equipo enemigo
     renderEnemyTeam() {
-        if (!enemyTeam) return;
-
         const container = document.getElementById('enemy-team-characters');
-        container.innerHTML = '';
-
-        enemyTeam.characters.forEach(character => {
-            const card = this.createCharacterCard(character);
-            container.appendChild(card);
-        });
-
-        // Actualizar estadísticas del equipo
-        this.updateTeamStats('enemy');
+        
+        if (!enemyTeam) {
+            container.innerHTML = `
+                <div class="team-placeholder">
+                    <p>Selecciona el equipo enemigo</p>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="team-info">
+                    <h3>${enemyTeam.nombre}</h3>
+                    <div class="team-characters">
+                        ${enemyTeam.characters.map(char => `
+                            <div class="team-character">
+                                <img src="../images/Personajes/${this.getCharacterImageName(char.nombre)}.webp" alt="${char.nombre}" class="character-image">
+                                <span>${char.nombre}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
     },
 
     // Actualizar estadísticas del equipo
     updateTeamStats(teamType) {
         const team = teamType === 'player' ? playerTeam : enemyTeam;
         if (!team) return;
-
+        
+        const power = this.calculateTeamPower(team.characters);
         const avgLevel = Math.round(team.characters.reduce((sum, char) => sum + char.nivel, 0) / team.characters.length);
-        const totalPower = this.calculateTeamPower(team.characters);
-
+        
         document.getElementById(`${teamType}-team-level`).textContent = avgLevel;
-        document.getElementById(`${teamType}-team-power`).textContent = totalPower;
-        document.getElementById(`${teamType}-team-name`).textContent = team.nombre || team.name || 'Equipo';
+        document.getElementById(`${teamType}-team-power`).textContent = power;
+        document.getElementById(`${teamType}-team-name`).textContent = team.nombre;
     },
 
     // Calcular poder del equipo
     calculateTeamPower(characters) {
-        return characters.reduce((total, char) => {
-            return total + (char.nivel * 10) + char.fuerza + char.vida;
-        }, 0);
+        return characters.reduce((total, char) => total + (char.nivel * 10), 0);
     },
 
-    // Actualizar estado del botón de iniciar pelea
+    // Actualizar botón de inicio
     updateStartButton() {
         const startBtn = document.getElementById('start-fight-btn');
         startBtn.disabled = !playerTeam || !enemyTeam;
@@ -387,69 +495,26 @@ const fightTeamsApp = {
         }
     },
 
-    // Configurar event listeners
-    setupEventListeners() {
-        // Botones de selección de equipo del jugador
-        document.getElementById('select-player-team-btn').addEventListener('click', () => {
-            this.showPlayerTeamSelectionModal();
-        });
-
-        // Botones de selección de equipo enemigo
-        document.getElementById('random-team-btn').addEventListener('click', () => {
-            this.generateRandomTeam();
-        });
-
-        document.getElementById('select-team-btn').addEventListener('click', () => {
-            this.showTeamSelectionModal();
-        });
-
-        // Botón de iniciar pelea
-        document.getElementById('start-fight-btn').addEventListener('click', () => {
-            this.showConfirmModal();
-        });
-
-        // Botones de combate
-        document.getElementById('attack-btn').addEventListener('click', () => {
-            this.performAction('attack');
-        });
-
-        document.getElementById('special-btn').addEventListener('click', () => {
-            this.performAction('special');
-        });
-
-        document.getElementById('ultimate-btn').addEventListener('click', () => {
-            this.performAction('ultimate');
-        });
-
-        document.getElementById('defend-btn').addEventListener('click', () => {
-            this.performAction('defend');
-        });
-    },
-
     // Mostrar modal de confirmación
     showConfirmModal() {
         const modal = document.getElementById('confirm-modal');
-        const summary = document.getElementById('fight-summary');
+        const content = document.getElementById('fight-summary');
         
-        summary.innerHTML = `
-            <div style="text-align: center; margin-bottom: 1rem;">
-                <h4 style="color: var(--accent-color); margin-bottom: 1rem;">⚔️ Resumen de la Pelea de Equipos</h4>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <div style="text-align: center;">
-                        <div style="font-weight: 600; margin-bottom: 0.5rem;">${playerTeam.nombre || playerTeam.name || 'Mi Equipo'}</div>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary);">${playerTeam.characters.map(c => c.nombre).join(', ')}</div>
-                        <div style="font-size: 0.8rem; color: var(--accent-color);">Poder: ${this.calculateTeamPower(playerTeam.characters)}</div>
+        content.innerHTML = `
+            <div style="text-align: center;">
+                <h3>Confirmar Pelea de Equipos</h3>
+                <p>¿Estás listo para la batalla?</p>
+                <div style="display: flex; justify-content: space-around; margin: 1rem 0;">
+                    <div>
+                        <strong>${playerTeam.nombre}</strong><br>
+                        <small>${playerTeam.characters.length} miembros</small>
                     </div>
-                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-color);">VS</div>
-                    <div style="text-align: center;">
-                        <div style="font-weight: 600; margin-bottom: 0.5rem;">${enemyTeam.nombre || enemyTeam.name || 'Equipo Enemigo'}</div>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary);">${enemyTeam.characters.map(c => c.nombre).join(', ')}</div>
-                        <div style="font-size: 0.8rem; color: var(--accent-color);">Poder: ${this.calculateTeamPower(enemyTeam.characters)}</div>
+                    <div style="font-size: 1.5rem; color: var(--btn-primary);">VS</div>
+                    <div>
+                        <strong>${enemyTeam.nombre}</strong><br>
+                        <small>${enemyTeam.characters.length} miembros</small>
                     </div>
                 </div>
-                <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                    ¿Estás listo para la batalla de equipos?
-                </p>
             </div>
         `;
         
@@ -466,198 +531,162 @@ const fightTeamsApp = {
         try {
             this.showLoading('Iniciando pelea de equipos...');
             
-            // Crear datos de la pelea con el formato correcto para el backend
-            // Usar nombres únicos para los equipos basados en los personajes seleccionados
-            const playerTeamName = playerTeam.nombre || playerTeam.name || `EQUIPO_${playerTeam.characters.map(c => c.nombre).join('_')}`;
-            const enemyTeamName = enemyTeam.nombre || enemyTeam.name || `EQUIPO_${enemyTeam.characters.map(c => c.nombre).join('_')}`;
-            
-            const fightData = {
-                equipoHeroes: playerTeamName,
-                equipoVillanos: enemyTeamName,
-                atacanteId: playerTeam.characters[0].id, // ID del primer personaje del equipo del jugador
-                defensorId: enemyTeam.characters[0].id,   // ID del primer personaje del equipo enemigo
-                tipoAtaque: 'basico' // Ataque inicial básico
-            };
-            
-            // Enviar al endpoint de peleas de equipos
-            const token = localStorage.getItem('token');
-            const response = await fetch('/api/fights/teams', {
+            // Crear nueva pelea de equipos en la base de datos
+            const response = await this.fetchWithAuth('/api/fights/teams', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(fightData)
+                body: JSON.stringify({
+                    equipoHeroes: playerTeam.nombre,
+                    equipoVillanos: enemyTeam.nombre,
+                    atacanteId: playerTeam.characters[0].id,
+                    defensorId: enemyTeam.characters[0].id,
+                    tipoAtaque: 'basico'
+                })
             });
             
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error al iniciar la pelea de equipos');
+                throw new Error('Error al iniciar la pelea de equipos');
             }
             
-            const data = await response.json();
-            currentFight = data;
+            const fightData = await response.json();
+            currentFightId = fightData.fightId;
             
             this.hideLoading();
             this.startCombat();
             
         } catch (error) {
             this.hideLoading();
-            this.showError('Error al iniciar la pelea: ' + error.message);
+            console.error('Error iniciando pelea de equipos:', error);
+            this.showError('Error al iniciar la pelea de equipos: ' + error.message);
         }
     },
 
     // Iniciar combate
     startCombat() {
-        // Ocultar fase de selección
-        document.getElementById('selection-phase').classList.add('hidden');
+        isFightInProgress = true;
         
-        // Mostrar área de combate
+        // Ocultar modal de confirmación
+        document.getElementById('confirm-modal').classList.add('hidden');
+        
+        // Ocultar fase de selección y mostrar fase de combate
+        document.getElementById('selection-phase').classList.add('hidden');
         document.getElementById('combat-phase').classList.remove('hidden');
         
-        // Configurar equipos en el área de combate
-        this.setupCombatArea();
-        
-        // Inicializar sistema de turnos
         this.initializeTurnSystem();
-        
-        // Agregar mensaje inicial
-        this.addCombatMessage('La batalla de equipos ha comenzado...', 'info');
-        
-        isFightInProgress = true;
+        this.setupCombatArea();
     },
 
     // Inicializar sistema de turnos
     initializeTurnSystem() {
-        // Inicializar HP de los equipos
+        this.currentTurn = 'player';
+        this.selectedTarget = null;
+        
+        // Inicializar vida de equipos
         playerTeam.characters.forEach(char => {
-            playerTeamHealth[char.id] = char.vida;
-            playerTeamExperience[char.id] = char.experiencia || 0;
+            playerTeamHealth[char.id] = 100;
         });
         
         enemyTeam.characters.forEach(char => {
-            enemyTeamHealth[char.id] = char.vida;
-            enemyTeamExperience[char.id] = char.experiencia || 0;
+            enemyTeamHealth[char.id] = 100;
         });
         
-        // Reiniciar cargas de ultimate
-        playerUltimateCharge = 0;
-        enemyUltimateCharge = 0;
-        
-        // Limpiar personajes muertos
-        deadCharacters.clear();
-        
-        // Configurar display de objetivos
-        this.updateTargetDisplay();
-        
-        // Configurar display del turno
-        this.updateTurnDisplay();
-        
-        // Actualizar displays de vida y ultimate
         this.updateTeamHealthDisplay();
-        this.updateUltimateDisplay();
-        
-        // Deshabilitar acciones inicialmente hasta que se seleccione un objetivo
-        this.disablePlayerActions();
+        this.updateTurnDisplay();
+        this.enablePlayerActions();
     },
 
     // Configurar área de combate
     setupCombatArea() {
-        // Configurar equipo del jugador
-        document.getElementById('player-team-title').textContent = playerTeam.nombre || playerTeam.name || 'Mi Equipo';
-        document.getElementById('player-team-health').textContent = this.calculateTeamHealth(playerTeam.characters);
         this.renderCombatTeam('player', playerTeam.characters);
-        
-        // Configurar equipo enemigo
-        document.getElementById('enemy-team-title').textContent = enemyTeam.nombre || enemyTeam.name || 'Equipo Enemigo';
-        document.getElementById('enemy-team-health').textContent = this.calculateTeamHealth(enemyTeam.characters);
         this.renderCombatTeam('enemy', enemyTeam.characters);
+        
+        // Limpiar log de combate
+        document.getElementById('combat-messages').innerHTML = '<div class="log-message">La batalla de equipos ha comenzado...</div>';
     },
 
     // Renderizar equipo en combate
     renderCombatTeam(teamType, characters) {
         const container = document.getElementById(`${teamType}-team-combat`);
-        container.innerHTML = '';
-
-        characters.forEach(character => {
-            const combatChar = document.createElement('div');
-            combatChar.className = 'combat-character alive';
-            combatChar.dataset.characterId = character.id;
-            
-            const imageName = CHARACTER_IMAGES[character.nombre] || 'Genji.webp';
-            const imagePath = imageName.replace('../', '/');
-            
-            combatChar.innerHTML = `
-                <div class="combat-character-avatar">
-                    <img src="${imagePath}" alt="${character.nombre}" class="combat-character-image">
+        
+        if (!container) {
+            console.error(`No se encontró el contenedor: ${teamType}-team-combat`);
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="combat-team">
+                <h3>${teamType === 'player' ? playerTeam.nombre : enemyTeam.nombre}</h3>
+                <div class="team-characters-combat">
+                    ${characters.map(char => `
+                        <div class="combat-character" data-character-id="${char.id}">
+                            <img src="../images/Personajes/${this.getCharacterImageName(char.nombre)}.webp" alt="${char.nombre}" class="combat-image">
+                            <div class="character-health">
+                                <div class="health-bar">
+                                    <div class="health-fill" style="width: 100%"></div>
+                                </div>
+                                <span class="health-text">100/100</span>
+                            </div>
+                            <span class="character-name">${char.nombre}</span>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="combat-character-name">${character.nombre}</div>
-                <div class="combat-character-hp">${character.vida} HP</div>
-            `;
-            
-            container.appendChild(combatChar);
-        });
+            </div>
+        `;
     },
 
     // Calcular vida total del equipo
     calculateTeamHealth(characters) {
-        return characters.reduce((total, char) => total + char.vida, 0);
+        return characters.reduce((total, char) => total + (playerTeamHealth[char.id] || 100), 0);
     },
 
-    // Actualizar display de vida de equipos dinámicamente
+    // Actualizar display de vida del equipo
     updateTeamHealthDisplay() {
-        // Calcular vida total del equipo del jugador
-        const playerTotalHealth = Object.values(playerTeamHealth).reduce((total, hp) => total + hp, 0);
-        document.getElementById('player-team-health').textContent = playerTotalHealth;
+        const playerHealth = this.calculateTeamHealth(playerTeam.characters);
+        const enemyHealth = this.calculateTeamHealth(enemyTeam.characters);
         
-        // Calcular vida total del equipo enemigo
-        const enemyTotalHealth = Object.values(enemyTeamHealth).reduce((total, hp) => total + hp, 0);
-        document.getElementById('enemy-team-health').textContent = enemyTotalHealth;
-        
-        // Actualizar vida individual de personajes
-        this.updateIndividualCharacterHealth();
+        document.getElementById('player-team-health').textContent = playerHealth;
+        document.getElementById('enemy-team-health').textContent = enemyHealth;
     },
 
     // Actualizar vida individual de personajes
     updateIndividualCharacterHealth() {
-        // Actualizar personajes del equipo del jugador
+        // Actualizar personajes del jugador
         playerTeam.characters.forEach(char => {
-            const charElement = document.querySelector(`#player-team-combat [data-character-id="${char.id}"]`);
+            const charElement = document.querySelector(`[data-character-id="${char.id}"]`);
             if (charElement) {
-                const hpElement = charElement.querySelector('.combat-character-hp');
-                const currentHP = playerTeamHealth[char.id] || 0;
-                hpElement.textContent = `${currentHP} HP`;
+                const health = playerTeamHealth[char.id] || 100;
+                const healthBar = charElement.querySelector('.health-fill');
+                const healthText = charElement.querySelector('.health-text');
                 
-                // Marcar como muerto si HP <= 0
-                if (currentHP <= 0) {
-                    charElement.classList.remove('alive');
+                if (healthBar) {
+                    healthBar.style.width = `${Math.max(0, health)}%`;
+                }
+                if (healthText) {
+                    healthText.textContent = `${Math.max(0, Math.floor(health))}/100`;
+                }
+                
+                if (health <= 0) {
                     charElement.classList.add('dead');
-                    deadCharacters.add(char.id);
-                } else {
-                    charElement.classList.remove('dead');
-                    charElement.classList.add('alive');
-                    deadCharacters.delete(char.id);
                 }
             }
         });
         
-        // Actualizar personajes del equipo enemigo
+        // Actualizar personajes enemigos
         enemyTeam.characters.forEach(char => {
-            const charElement = document.querySelector(`#enemy-team-combat [data-character-id="${char.id}"]`);
+            const charElement = document.querySelector(`[data-character-id="${char.id}"]`);
             if (charElement) {
-                const hpElement = charElement.querySelector('.combat-character-hp');
-                const currentHP = enemyTeamHealth[char.id] || 0;
-                hpElement.textContent = `${currentHP} HP`;
+                const health = enemyTeamHealth[char.id] || 100;
+                const healthBar = charElement.querySelector('.health-fill');
+                const healthText = charElement.querySelector('.health-text');
                 
-                // Marcar como muerto si HP <= 0
-                if (currentHP <= 0) {
-                    charElement.classList.remove('alive');
+                if (healthBar) {
+                    healthBar.style.width = `${Math.max(0, health)}%`;
+                }
+                if (healthText) {
+                    healthText.textContent = `${Math.max(0, Math.floor(health))}/100`;
+                }
+                
+                if (health <= 0) {
                     charElement.classList.add('dead');
-                    deadCharacters.add(char.id);
-                } else {
-                    charElement.classList.remove('dead');
-                    charElement.classList.add('alive');
-                    deadCharacters.delete(char.id);
                 }
             }
         });
@@ -665,77 +694,47 @@ const fightTeamsApp = {
 
     // Actualizar display de ultimate
     updateUltimateDisplay() {
-        const ultimateBtn = document.getElementById('ultimate-btn');
-        if (playerUltimateCharge >= ultimateChargeThreshold) {
-            ultimateBtn.disabled = false;
-            ultimateBtn.textContent = `⭐ Ultimate (${playerUltimateCharge}/${ultimateChargeThreshold})`;
-        } else {
-            ultimateBtn.disabled = true;
-            ultimateBtn.textContent = `⭐ Ultimate (${playerUltimateCharge}/${ultimateChargeThreshold})`;
-        }
-    },
-
-    // Cargar ultimate basado en daño o kills
-    chargeUltimate(damage, isKill = false) {
-        const chargeAmount = isKill ? 50 : Math.floor(damage / 2);
-        playerUltimateCharge = Math.min(ultimateChargeThreshold, playerUltimateCharge + chargeAmount);
-        this.updateUltimateDisplay();
+        const ultimateBar = document.getElementById('ultimate-bar');
+        const ultimateText = document.getElementById('ultimate-text');
         
-        if (playerUltimateCharge >= ultimateChargeThreshold) {
-            this.addCombatMessage('⭐ ¡Ultimate cargado!', 'ultimate');
+        if (ultimateBar && ultimateText) {
+            const percentage = (playerUltimateCharge / ultimateChargeThreshold) * 100;
+            ultimateBar.style.width = `${Math.min(100, percentage)}%`;
+            ultimateText.textContent = `${playerUltimateCharge}/${ultimateChargeThreshold}`;
         }
     },
 
-    // Sistema de experiencia
+    // Cargar ultimate
+    chargeUltimate(damage, isKill = false) {
+        const baseCharge = damage * 0.1;
+        const killBonus = isKill ? 20 : 0;
+        playerUltimateCharge = Math.min(ultimateChargeThreshold, playerUltimateCharge + baseCharge + killBonus);
+        this.updateUltimateDisplay();
+    },
+
+    // Agregar experiencia a personaje
     addExperienceToCharacter(characterId, experienceGained) {
         if (!playerTeamExperience[characterId]) {
             playerTeamExperience[characterId] = 0;
         }
-        
-        const currentExp = playerTeamExperience[characterId];
-        const newExp = currentExp + experienceGained;
-        
-        // Verificar si sube de nivel
-        if (newExp >= 100) {
-            const levelsGained = Math.floor(newExp / 100);
-            const excessExp = newExp % 100;
-            
-            // Encontrar el personaje y subir su nivel
-            const character = playerTeam.characters.find(char => char.id === characterId);
-            if (character) {
-                character.nivel += levelsGained;
-                this.addCombatMessage(`🎉 ${character.nombre} subió ${levelsGained} nivel(es)!`, 'levelup');
-            }
-            
-            playerTeamExperience[characterId] = excessExp;
-        } else {
-            playerTeamExperience[characterId] = newExp;
-        }
+        playerTeamExperience[characterId] += experienceGained;
     },
 
-    // Calcular experiencia ganada por victoria
+    // Calcular experiencia de victoria
     calculateVictoryExperience() {
-        const baseExp = 50; // Experiencia base por victoria
-        const enemyLevel = enemyTeam.characters.reduce((total, char) => total + char.nivel, 0) / enemyTeam.characters.length;
-        const levelBonus = Math.floor(enemyLevel * 5);
-        
-        return baseExp + levelBonus;
+        const baseExperience = 100;
+        const levelBonus = enemyTeam.characters.reduce((total, char) => total + char.nivel, 0) * 5;
+        return baseExperience + levelBonus;
     },
 
     // Distribuir experiencia al equipo ganador
     distributeExperienceToWinningTeam(experiencePerCharacter) {
-        const aliveCharacters = playerTeam.characters.filter(char => !deadCharacters.has(char.id));
-        
-        aliveCharacters.forEach(char => {
+        const survivors = playerTeam.characters.filter(char => playerTeamHealth[char.id] > 0);
+        survivors.forEach(char => {
             this.addExperienceToCharacter(char.id, experiencePerCharacter);
         });
-        
-        return aliveCharacters.length;
+        return survivors.map(char => char.nombre).join(', ');
     },
-
-    // Variables para el sistema de turnos
-    selectedTarget: null,
-    currentTurn: 'player', // 'player' o 'enemy'
 
     // Realizar acción de combate
     async performAction(action) {
@@ -762,28 +761,51 @@ const fightTeamsApp = {
         actionBtn.disabled = true;
         
         try {
-            // Calcular daño basado en el personaje atacante y objetivo
-            const damage = this.calculateCharacterDamage(action, this.selectedTarget);
-            const message = this.getActionMessage(action, damage, this.selectedTarget);
+            // Realizar acción en la API
+            const response = await this.fetchWithAuth('/api/fights/teams', {
+                method: 'POST',
+                body: JSON.stringify({
+                    fightId: currentFightId,
+                    atacanteId: playerTeam.characters[0].id, // Seleccionar atacante aleatorio
+                    defensorId: this.selectedTarget.id,
+                    tipoAtaque: action
+                })
+            });
             
-            this.addCombatMessage(message, action);
+            if (!response.ok) {
+                throw new Error('Error al realizar la acción');
+            }
             
-            // Aplicar daño al objetivo específico
-            this.applyDamageToTarget(this.selectedTarget, damage);
+            const fightData = await response.json();
             
-            // Cargar ultimate basado en daño
-            this.chargeUltimate(damage);
+            // Actualizar información de la pelea
+            if (fightData.equipoHeroes) {
+                fightData.equipoHeroes.forEach(hero => {
+                    playerTeamHealth[hero.id] = hero.vida;
+                });
+            }
+            if (fightData.equipoVillanos) {
+                fightData.equipoVillanos.forEach(villain => {
+                    enemyTeamHealth[villain.id] = villain.vida;
+                });
+            }
+            
+            // Mostrar mensaje del turno
+            if (fightData.turno) {
+                const message = `${fightData.turno.atacante} ataca a ${fightData.turno.defensor}: ${fightData.turno.descripcion}`;
+                this.addCombatMessage(message, action);
+            }
+            
+            // Actualizar displays
+            this.updateTeamHealthDisplay();
+            this.updateIndividualCharacterHealth();
             
             // Verificar si el objetivo murió
             if (enemyTeamHealth[this.selectedTarget.id] <= 0) {
                 this.addCombatMessage(`💀 ${this.selectedTarget.nombre} ha sido derrotado!`, 'info');
-                // Cargar ultimate adicional por kill
-                this.chargeUltimate(0, true);
+                deadCharacters.add(this.selectedTarget.id);
                 this.updateTargetDisplay();
             }
-            
-            // Actualizar display de vida
-            this.updateTeamHealthDisplay();
             
             // Verificar si todo el equipo enemigo fue derrotado
             const aliveEnemies = Object.values(enemyTeamHealth).filter(hp => hp > 0).length;
@@ -826,10 +848,10 @@ const fightTeamsApp = {
         let damage = 0;
         
         switch (action) {
-            case 'attack':
+            case 'basico':
                 damage = Math.max(15, baseAttack - targetDefense / 2);
                 break;
-            case 'special':
+            case 'especial':
                 damage = Math.max(30, baseAttack * 1.8 - targetDefense / 2);
                 break;
             case 'ultimate':
@@ -837,99 +859,59 @@ const fightTeamsApp = {
                 break;
         }
         
-        return Math.floor(damage + Math.random() * 15);
+        return Math.floor(damage + Math.random() * 10);
     },
 
-    // Aplicar daño al objetivo específico
+    // Aplicar daño al objetivo
     applyDamageToTarget(target, damage) {
-        if (enemyTeamHealth[target.id]) {
-            enemyTeamHealth[target.id] = Math.max(0, enemyTeamHealth[target.id] - damage);
-        }
-        this.updateTargetDisplay();
+        enemyTeamHealth[target.id] = Math.max(0, enemyTeamHealth[target.id] - damage);
     },
 
-    // Seleccionar objetivo enemigo
+    // Seleccionar objetivo
     selectTarget(target) {
-        if (this.currentTurn !== 'player' || !isFightInProgress) return;
-        
-        // Remover selección anterior
-        document.querySelectorAll('.target-character.selected').forEach(char => {
-            char.classList.remove('selected');
-        });
-        
-        // Seleccionar nuevo objetivo
-        const targetElement = document.querySelector(`[data-target-id="${target.id}"]`);
-        if (targetElement && !targetElement.classList.contains('dead')) {
-            targetElement.classList.add('selected');
-            this.selectedTarget = target;
-            this.enablePlayerActions();
-        }
+        this.selectedTarget = target;
+        this.updateTargetDisplay();
     },
 
     // Habilitar acciones del jugador
     enablePlayerActions() {
-        document.getElementById('attack-btn').disabled = false;
-        document.getElementById('special-btn').disabled = false;
-        document.getElementById('ultimate-btn').disabled = false;
+        const actionButtons = document.querySelector('.action-buttons');
+        if (actionButtons) {
+            actionButtons.classList.remove('disabled');
+        }
     },
 
     // Deshabilitar acciones del jugador
     disablePlayerActions() {
-        document.getElementById('attack-btn').disabled = true;
-        document.getElementById('special-btn').disabled = true;
-        document.getElementById('ultimate-btn').disabled = true;
-        
-        // Remover selección de objetivo
-        document.querySelectorAll('.target-character.selected').forEach(char => {
-            char.classList.remove('selected');
-        });
-        this.selectedTarget = null;
+        const actionButtons = document.querySelector('.action-buttons');
+        if (actionButtons) {
+            actionButtons.classList.add('disabled');
+        }
     },
 
-    // Actualizar display de objetivos
+    // Actualizar display de objetivo
     updateTargetDisplay() {
-        const targetContainer = document.getElementById('enemy-targets');
-        targetContainer.innerHTML = '';
+        const targetDisplay = document.getElementById('selected-target');
         
-        // Solo mostrar personajes vivos como objetivos
-        const aliveEnemies = enemyTeam.characters.filter(char => !deadCharacters.has(char.id));
-        
-        if (aliveEnemies.length === 0) {
-            targetContainer.innerHTML = '<div class="no-targets">No hay objetivos disponibles</div>';
-            return;
-        }
-        
-        aliveEnemies.forEach(char => {
-            const targetElement = document.createElement('div');
-            targetElement.className = 'target-character';
-            targetElement.dataset.targetId = char.id;
-            targetElement.onclick = () => this.selectTarget(char);
-            
-            const imageName = CHARACTER_IMAGES[char.nombre] || 'Genji.webp';
-            const imagePath = imageName.replace('../', '/');
-            
-            targetElement.innerHTML = `
-                <img src="${imagePath}" alt="${char.nombre}">
-                <div class="character-name">${char.nombre}</div>
-                <div class="character-hp">${Math.max(0, enemyTeamHealth[char.id] || char.vida)} HP</div>
+        if (this.selectedTarget && enemyTeamHealth[this.selectedTarget.id] > 0) {
+            targetDisplay.innerHTML = `
+                <div class="target-info">
+                    <img src="../images/Personajes/${this.selectedTarget.nombre}.webp" alt="${this.selectedTarget.nombre}" class="target-image">
+                    <div class="target-details">
+                        <h4>${this.selectedTarget.nombre}</h4>
+                        <p>Vida: ${Math.max(0, Math.floor(enemyTeamHealth[this.selectedTarget.id]))}/100</p>
+                    </div>
+                </div>
             `;
-            
-            targetContainer.appendChild(targetElement);
-        });
+        } else {
+            targetDisplay.innerHTML = '<p>Selecciona un objetivo</p>';
+        }
     },
 
-    // Actualizar display del turno
+    // Actualizar display de turno
     updateTurnDisplay() {
-        const turnInfo = document.getElementById('current-turn');
-        const turnContainer = document.querySelector('.turn-info');
-        
-        if (this.currentTurn === 'player') {
-            turnInfo.textContent = 'Turno: Tu equipo';
-            turnContainer.classList.remove('enemy-turn');
-        } else {
-            turnInfo.textContent = 'Turno: Equipo enemigo';
-            turnContainer.classList.add('enemy-turn');
-        }
+        const turnDisplay = document.getElementById('current-turn');
+        turnDisplay.textContent = `Turno: ${this.currentTurn === 'player' ? 'Tu equipo' : 'Equipo enemigo'}`;
     },
 
     // Obtener mensaje de acción
@@ -937,106 +919,116 @@ const fightTeamsApp = {
         const attacker = playerTeam.characters[Math.floor(Math.random() * playerTeam.characters.length)];
         
         switch (action) {
-            case 'attack':
+            case 'basico':
                 return `⚔️ ${attacker.nombre} ataca a ${target.nombre} causando ${damage} de daño`;
-            case 'special':
+            case 'especial':
                 return `🔥 ${attacker.nombre} usa habilidad especial contra ${target.nombre} causando ${damage} de daño`;
             case 'ultimate':
-                return `⭐ ${attacker.nombre} usa ultimate contra ${target.nombre} causando ${damage} de daño`;
+                return `💥 ${attacker.nombre} usa ultimate contra ${target.nombre} causando ${damage} de daño`;
         }
     },
 
     // Actualizar vida del equipo
     updateTeamHealth(teamType, damage) {
-        const healthElement = document.getElementById(`${teamType}-team-health`);
-        const currentHealth = parseInt(healthElement.textContent);
-        const newHealth = Math.max(0, currentHealth - damage);
-        healthElement.textContent = newHealth;
+        const team = teamType === 'player' ? playerTeam : enemyTeam;
+        const healthObj = teamType === 'player' ? playerTeamHealth : enemyTeamHealth;
         
-        // Actualizar personajes individuales
-        this.updateIndividualCharacters(teamType, damage);
+        // Distribuir daño entre miembros vivos
+        const aliveMembers = team.characters.filter(char => healthObj[char.id] > 0);
+        if (aliveMembers.length > 0) {
+            const damagePerMember = damage / aliveMembers.length;
+            aliveMembers.forEach(char => {
+                healthObj[char.id] = Math.max(0, healthObj[char.id] - damagePerMember);
+            });
+        }
     },
 
     // Actualizar personajes individuales
     updateIndividualCharacters(teamType, totalDamage) {
-        const characters = teamType === 'player' ? playerTeam.characters : enemyTeam.characters;
-        const damagePerChar = Math.floor(totalDamage / characters.length);
-        
-        characters.forEach((character, index) => {
-            const charElement = document.querySelector(`#${teamType}-team-combat [data-character-id="${character.id}"]`);
-            if (charElement) {
-                const hpElement = charElement.querySelector('.combat-character-hp');
-                const currentHP = parseInt(hpElement.textContent);
-                const newHP = Math.max(0, currentHP - damagePerChar);
-                hpElement.textContent = `${newHP} HP`;
-                
-                if (newHP <= 0) {
-                    charElement.classList.remove('alive');
-                    charElement.classList.add('dead');
-                }
-            }
-        });
+        this.updateTeamHealth(teamType, totalDamage);
+        this.updateTeamHealthDisplay();
+        this.updateIndividualCharacterHealth();
     },
 
     // Ataque del equipo enemigo
-    enemyTeamAttack() {
+    async enemyTeamAttack() {
         if (!isFightInProgress || this.currentTurn !== 'enemy') return;
         
-        // Seleccionar un personaje aleatorio del equipo enemigo como atacante (solo vivos)
-        const aliveEnemyAttackers = enemyTeam.characters.filter(char => !deadCharacters.has(char.id));
-        if (aliveEnemyAttackers.length === 0) {
-            this.endFight('victory');
-            return;
-        }
-        
-        const attacker = aliveEnemyAttackers[Math.floor(Math.random() * aliveEnemyAttackers.length)];
-        
-        // Seleccionar un personaje aleatorio del equipo del jugador como objetivo (solo vivos)
-        const alivePlayers = playerTeam.characters.filter(char => !deadCharacters.has(char.id));
-        if (alivePlayers.length === 0) {
+        // Seleccionar objetivo aleatorio del equipo del jugador
+        const alivePlayerMembers = playerTeam.characters.filter(char => playerTeamHealth[char.id] > 0);
+        if (alivePlayerMembers.length === 0) {
             this.endFight('defeat');
             return;
         }
         
-        const target = alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
+        const target = alivePlayerMembers[Math.floor(Math.random() * alivePlayerMembers.length)];
+        const actions = ['basico', 'especial', 'critico'];
+        const action = actions[Math.floor(Math.random() * actions.length)];
         
-        // Seleccionar acción aleatoria del enemigo
-        const actions = ['attack', 'special', 'ultimate'];
-        const randomAction = actions[Math.floor(Math.random() * actions.length)];
-        
-        // Calcular daño del enemigo
-        const damage = this.calculateEnemyCharacterDamage(randomAction, target);
-        const message = this.getEnemyActionMessage(randomAction, damage, target);
-        
-        this.addCombatMessage(message, 'enemy');
-        
-        // Aplicar daño al objetivo específico
-        this.applyDamageToPlayerTarget(target, damage);
-        
-        // Verificar si el objetivo murió
-        if (playerTeamHealth[target.id] <= 0) {
-            this.addCombatMessage(`💀 ${target.nombre} ha sido derrotado!`, 'info');
+        try {
+            // Realizar acción del enemigo en la API
+            const response = await this.fetchWithAuth('/api/fights/teams', {
+                method: 'POST',
+                body: JSON.stringify({
+                    fightId: currentFightId,
+                    atacanteId: enemyTeam.characters[0].id, // Seleccionar atacante aleatorio
+                    defensorId: target.id,
+                    tipoAtaque: action
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Error al realizar la acción del enemigo');
+            }
+            
+            const fightData = await response.json();
+            
+            // Actualizar información de la pelea
+            if (fightData.equipoHeroes) {
+                fightData.equipoHeroes.forEach(hero => {
+                    playerTeamHealth[hero.id] = hero.vida;
+                });
+            }
+            if (fightData.equipoVillanos) {
+                fightData.equipoVillanos.forEach(villain => {
+                    enemyTeamHealth[villain.id] = villain.vida;
+                });
+            }
+            
+            // Mostrar mensaje del turno
+            if (fightData.turno) {
+                const message = `${fightData.turno.atacante} ataca a ${fightData.turno.defensor}: ${fightData.turno.descripcion}`;
+                this.addCombatMessage(message, 'enemy');
+            }
+            
+            // Actualizar displays
+            this.updateTeamHealthDisplay();
+            this.updateIndividualCharacterHealth();
+            
+            // Verificar si el objetivo murió
+            if (playerTeamHealth[target.id] <= 0) {
+                this.addCombatMessage(`💀 ${target.nombre} ha sido derrotado!`, 'info');
+            }
+            
+            // Verificar si todo el equipo del jugador fue derrotado
+            const alivePlayerMembers = Object.values(playerTeamHealth).filter(hp => hp > 0).length;
+            if (alivePlayerMembers === 0) {
+                this.endFight('defeat');
+                return;
+            }
+            
+            // Cambiar al turno del jugador
+            this.currentTurn = 'player';
+            this.updateTurnDisplay();
+            this.enablePlayerActions();
+            
+        } catch (error) {
+            this.addCombatMessage('Error en la acción del enemigo: ' + error.message, 'error');
         }
-        
-        // Actualizar display de vida
-        this.updateTeamHealthDisplay();
-        
-        // Verificar si todo el equipo del jugador fue derrotado
-        const alivePlayersAfter = Object.values(playerTeamHealth).filter(hp => hp > 0).length;
-        if (alivePlayersAfter === 0) {
-            this.endFight('defeat');
-            return;
-        }
-        
-        // Cambiar al turno del jugador
-        this.currentTurn = 'player';
-        this.updateTurnDisplay();
-        this.enablePlayerActions();
     },
 
-    // Calcular daño de personaje enemigo específico
+    // Calcular daño del personaje enemigo
     calculateEnemyCharacterDamage(action, target) {
-        // Seleccionar un personaje aleatorio del equipo enemigo como atacante
         const attacker = enemyTeam.characters[Math.floor(Math.random() * enemyTeam.characters.length)];
         
         const baseAttack = attacker.nivel * 7;
@@ -1045,25 +1037,23 @@ const fightTeamsApp = {
         let damage = 0;
         
         switch (action) {
-            case 'attack':
+            case 'basico':
                 damage = Math.max(12, baseAttack - targetDefense / 2);
                 break;
-            case 'special':
+            case 'especial':
                 damage = Math.max(25, baseAttack * 1.6 - targetDefense / 2);
                 break;
-            case 'ultimate':
+            case 'critico':
                 damage = Math.max(40, baseAttack * 2.2 - targetDefense / 2);
                 break;
         }
         
-        return Math.floor(damage + Math.random() * 12);
+        return Math.floor(damage + Math.random() * 8);
     },
 
     // Aplicar daño al objetivo del jugador
     applyDamageToPlayerTarget(target, damage) {
-        if (playerTeamHealth[target.id]) {
-            playerTeamHealth[target.id] = Math.max(0, playerTeamHealth[target.id] - damage);
-        }
+        playerTeamHealth[target.id] = Math.max(0, playerTeamHealth[target.id] - damage);
     },
 
     // Obtener mensaje de acción del enemigo
@@ -1071,12 +1061,12 @@ const fightTeamsApp = {
         const attacker = enemyTeam.characters[Math.floor(Math.random() * enemyTeam.characters.length)];
         
         switch (action) {
-            case 'attack':
+            case 'basico':
                 return `⚔️ ${attacker.nombre} ataca a ${target.nombre} causando ${damage} de daño`;
-            case 'special':
+            case 'especial':
                 return `🔥 ${attacker.nombre} usa habilidad especial contra ${target.nombre} causando ${damage} de daño`;
-            case 'ultimate':
-                return `⭐ ${attacker.nombre} usa ultimate contra ${target.nombre} causando ${damage} de daño`;
+            case 'critico':
+                return `💥 ${attacker.nombre} usa ataque crítico contra ${target.nombre} causando ${damage} de daño`;
         }
     },
 
@@ -1145,6 +1135,8 @@ const fightTeamsApp = {
         // Resetear variables
         playerTeam = null;
         enemyTeam = null;
+        currentFight = null;
+        currentFightId = null;
         isFightInProgress = false;
         this.selectedTarget = null;
         this.currentTurn = 'player';
@@ -1152,8 +1144,8 @@ const fightTeamsApp = {
         this.enemyTeamHealth = {};
         
         // Limpiar equipos mostrados
-        document.getElementById('player-team-display').innerHTML = '';
-        document.getElementById('enemy-team-display').innerHTML = '';
+        document.getElementById('player-team-characters').innerHTML = '';
+        document.getElementById('enemy-team-characters').innerHTML = '';
         
         // Limpiar log de combate
         document.getElementById('combat-messages').innerHTML = '<div class="log-message">La batalla de equipos ha comenzado...</div>';
@@ -1182,8 +1174,51 @@ const fightTeamsApp = {
         alert('Error: ' + message);
     },
 
-    // Mostrar estadísticas del personaje
+    // Función helper para obtener el nombre correcto del archivo de imagen
+    getCharacterImageName(characterName) {
+        const imageMap = {
+            'Cassidy': 'Cass',
+            'Genji': 'Genji',
+            'Hanzo': 'Hanzo',
+            'Reaper': 'Reaper',
+            'Moira': 'Moira',
+            'Sombra': 'Sombra'
+        };
+        return imageMap[characterName] || characterName;
+    },
 
+    // Función de debug para verificar el estado
+    async debugState() {
+        console.log('=== DEBUG ESTADO EQUIPOS ===');
+        
+        // Verificar autenticación
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        
+        console.log('Token:', !!token);
+        console.log('User:', user);
+        
+        // Verificar API
+        try {
+            const response = await fetch('/api/test');
+            const data = await response.json();
+            console.log('API Status:', data);
+        } catch (error) {
+            console.error('Error API:', error);
+        }
+        
+        // Probar autenticación
+        const authOk = await this.testAuth();
+        console.log('Auth test result:', authOk);
+        
+        // Verificar equipos seleccionados
+        console.log('Player Team:', playerTeam);
+        console.log('Enemy Team:', enemyTeam);
+        console.log('Current Fight ID:', currentFightId);
+        console.log('Available Teams:', availableTeams);
+        
+        console.log('=== FIN DEBUG EQUIPOS ===');
+    }
 };
 
 // ===== FUNCIONES AUXILIARES =====

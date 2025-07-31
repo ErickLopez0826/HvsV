@@ -1,8 +1,13 @@
 /* ===== REGISTER SPECIFIC STYLES ===== */
 
+/* FORZAR ESTILOS COMPACTOS - VERSIÓN 1.1 */
 .register-card {
     position: relative;
     overflow: hidden;
+    padding: 2rem !important;
+    width: 100% !important;
+    max-width: 350px !important;
+    margin: 0 !important;
 }
 
 .register-card::before {
@@ -24,10 +29,12 @@
 #register-form {
     position: relative;
     z-index: 2;
+    gap: 1rem !important;
 }
 
 #register-form .input-group {
     position: relative;
+    margin-bottom: 1rem !important;
 }
 
 #register-form .input-group input {
@@ -60,6 +67,7 @@
     font-weight: 700;
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    margin-top: 0.5rem !important;
 }
 
 #register-form .btn-primary::after {
@@ -142,8 +150,8 @@
 /* Responsive específico para registro */
 @media (max-width: 480px) {
     .register-card {
-        margin: 1rem;
-        padding: 2rem;
+        margin: 1rem !important;
+        padding: 1.5rem !important;
     }
     
     #register-form .btn-primary {
