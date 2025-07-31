@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pelea de Equipos - Héroes vs Villanos</title>
-    <link rel="stylesheet" href="../css/fight_teams.css?v=15.0">
+    <link rel="stylesheet" href="../css/fight_teams.css?v=18.0">
 </head>
 <body>
     <!-- Header con navegación -->
@@ -125,9 +125,18 @@
             <!-- Acciones de combate -->
             <div class="combat-actions">
                 <div class="action-selection">
-                    <h4>🎯 Selecciona un objetivo enemigo:</h4>
-                    <div id="enemy-targets" class="target-selection">
-                        <!-- Objetivos enemigos seleccionables -->
+                    <div class="selection-section">
+                        <h4>⚔️ Selecciona tu atacante:</h4>
+                        <div id="selected-attacker" class="attacker-info">
+                            <p>Haz clic en uno de tus personajes para seleccionarlo como atacante</p>
+                        </div>
+                    </div>
+                    
+                    <div class="selection-section">
+                        <h4>🎯 Selecciona un objetivo enemigo:</h4>
+                        <div id="selected-target" class="target-info">
+                            <p>Haz clic en un personaje enemigo para seleccionarlo como objetivo</p>
+                        </div>
                     </div>
                 </div>
                 
@@ -141,6 +150,14 @@
                     <button id="ultimate-btn" class="btn btn-secondary" disabled>
                         ⭐ Ultimate
                     </button>
+                </div>
+                
+                <!-- Barra de Ultimate -->
+                <div class="ultimate-charge">
+                    <div class="ultimate-bar-container">
+                        <div id="ultimate-bar" class="ultimate-bar"></div>
+                    </div>
+                    <span id="ultimate-text">0/100</span>
                 </div>
                 
                 <div class="turn-info">
@@ -224,6 +241,13 @@
         </div>
     </div>
 
+    <!-- Audio del juego -->
+    <audio id="game-soundtrack" loop>
+        <source src="../audio/Soundtrack.ogg" type="audio/ogg">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+
+    <script src="../js/audio-manager.js"></script>
     <script src="../js/fight_teams.js"></script>
 </body>
 </html> 

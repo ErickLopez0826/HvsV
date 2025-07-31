@@ -57,6 +57,28 @@ app.get('/api/personajes', async (req, res) => {
   }
 });
 
+// Endpoint de debug para ver la estructura exacta de las peleas (sin autenticación)
+app.get('/api/debug/fights', async (req, res) => {
+  try {
+    console.log('Recibida petición GET /api/debug/fights');
+    
+    const fightRepository = (await import('./repositories/fightRepository.js')).default;
+    const fights = await fightRepository.getFights();
+    
+    res.json({
+      totalFights: fights.length,
+      fights: fights
+    });
+  } catch (error) {
+    console.error('Error en GET /api/debug/fights:', error);
+    res.status(500).json({ 
+      status: 'ERROR',
+      message: 'Error al obtener peleas',
+      error: error.message 
+    });
+  }
+});
+
 // Endpoint público para obtener peleas (sin autenticación)
 app.get('/api/fights', async (req, res) => {
   try {
@@ -89,8 +111,8 @@ app.use('/api', (req, res, next) => {
     return next();
   }
   
-  // Para /fights, solo permitir GET sin autenticación
-  if (req.path === '/fights' && req.method === 'GET') {
+  // Para /fights y /debug/fights, solo permitir GET sin autenticación
+  if ((req.path === '/fights' || req.path === '/debug/fights') && req.method === 'GET') {
     return next();
   }
   
@@ -141,6 +163,8 @@ app.get('/api/test', async (req, res) => {
     });
   }
 });
+
+
 
 // Endpoint de prueba para verificar autenticación
 app.get('/api/auth-test', async (req, res) => {

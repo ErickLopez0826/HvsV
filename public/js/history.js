@@ -11,6 +11,16 @@ class HistoryManager {
             sortBy: 'newest'
         };
         
+        // Mapeo de nombres de personajes a nombres de archivos de imagen
+        this.characterImageMap = {
+            'Genji': 'Genji',
+            'Hanzo': 'Hanzo',
+            'Cassidy': 'Cass',
+            'Reaper': 'Reaper',
+            'Moira': 'Moira',
+            'Sombra': 'Sombra'
+        };
+        
         this.init();
     }
     
@@ -84,6 +94,31 @@ class HistoryManager {
             this.fights = data.fights || data || [];
             console.log('Peleas cargadas:', this.fights);
             
+            // Debug: Mostrar estructura de cada pelea
+            this.fights.forEach((fight, index) => {
+                console.log(`Pelea ${index + 1}:`, {
+                    fightId: fight.fightId,
+                    tipo: fight.tipo,
+                    heroes: fight.heroes ? fight.heroes.length : 'no',
+                    villanos: fight.villanos ? fight.villanos.length : 'no',
+                    personaje1: fight.personaje1 ? 'sí' : 'no',
+                    personaje2: fight.personaje2 ? 'sí' : 'no',
+                    winner: fight.winner ? 'sí' : 'no',
+                    fecha: fight.fecha,
+                    resultado: fight.resultado,
+                    simulados: fight.simulados ? Object.keys(fight.simulados).length : 'no'
+                });
+                
+                // Mostrar detalles completos de peleas para debug
+                if (index === 0) {
+                    console.log('Detalles completos de la primera pelea:', fight);
+                }
+                // Mostrar detalles de peleas sin resultado
+                if (!fight.resultado) {
+                    console.log(`Pelea ${index + 1} SIN RESULTADO - Detalles completos:`, fight);
+                }
+            });
+            
             this.applyFilters();
             
         } catch (error) {
@@ -92,6 +127,11 @@ class HistoryManager {
         } finally {
             this.showLoading(false);
         }
+    }
+    
+    // Método auxiliar para obtener el nombre correcto de la imagen del personaje
+    getCharacterImageName(characterName) {
+        return this.characterImageMap[characterName] || characterName;
     }
     
     applyFilters() {
@@ -128,8 +168,8 @@ class HistoryManager {
         
         // Ordenar
         this.filteredFights.sort((a, b) => {
-            const dateA = new Date(a.date || a.createdAt || a.timestamp || a.fightId);
-            const dateB = new Date(b.date || b.createdAt || b.timestamp || b.fightId);
+            const dateA = new Date(a.fecha || a.date || a.createdAt || a.timestamp || a.fightId);
+            const dateB = new Date(b.fecha || b.date || b.createdAt || b.timestamp || b.fightId);
             
             if (this.currentFilters.sortBy === 'newest') {
                 return dateB - dateA;
@@ -176,7 +216,7 @@ class HistoryManager {
         }
         
         // Usar la fecha actual si no hay fecha en los datos
-        const fightDate = new Date(fight.date || fight.createdAt || fight.timestamp || Date.now());
+        const fightDate = new Date(fight.fecha || fight.date || fight.createdAt || fight.timestamp || Date.now());
         const formattedDate = fightDate.toLocaleDateString('es-ES', {
             year: 'numeric',
             month: 'long',
@@ -199,7 +239,7 @@ class HistoryManager {
                         <div class="team-participants">
                             ${heroes.map(hero => `
                                 <div class="team-member">
-                                    <img src="../images/Personajes/${hero.nombre || 'Genji'}.webp" 
+                                    <img src="../images/Personajes/${this.getCharacterImageName(hero.nombre) || 'Genji'}.webp" 
                                          alt="${hero.nombre || 'Héroe'}" 
                                          class="team-member-image"
                                          onerror="this.src='../images/Personajes/default.webp'">
@@ -215,7 +255,7 @@ class HistoryManager {
                         <div class="team-participants">
                             ${villains.map(villain => `
                                 <div class="team-member">
-                                    <img src="../images/Personajes/${villain.nombre || 'Reaper'}.webp" 
+                                    <img src="../images/Personajes/${this.getCharacterImageName(villain.nombre) || 'Reaper'}.webp" 
                                          alt="${villain.nombre || 'Villano'}" 
                                          class="team-member-image"
                                          onerror="this.src='../images/Personajes/default.webp'">
@@ -234,7 +274,7 @@ class HistoryManager {
             participantsHTML = `
                 <div class="fight-participants">
                     <div class="participant">
-                        <img src="../images/Personajes/${personaje1.nombre || 'Genji'}.webp" 
+                        <img src="../images/Personajes/${this.getCharacterImageName(personaje1.nombre) || 'Genji'}.webp" 
                              alt="${personaje1.nombre || 'Héroe'}" 
                              class="participant-image"
                              onerror="this.src='../images/Personajes/default.webp'">
@@ -245,7 +285,7 @@ class HistoryManager {
                     <div class="vs-separator">VS</div>
                     
                     <div class="participant">
-                        <img src="../images/Personajes/${personaje2.nombre || 'Reaper'}.webp" 
+                        <img src="../images/Personajes/${this.getCharacterImageName(personaje2.nombre) || 'Reaper'}.webp" 
                              alt="${personaje2.nombre || 'Villano'}" 
                              class="participant-image"
                              onerror="this.src='../images/Personajes/default.webp'">
@@ -303,23 +343,55 @@ class HistoryManager {
         }
         
         // Determinar resultado
-        let winner = null;
-        let isWinner = false;
+        let resultText = 'Inconclusa';
         
         if (isTeamFight) {
-            // Para peleas de equipos, verificar si hay personajes con vida 0
-            const heroesAlive = (fight.heroes || []).filter(h => h.vida > 0).length;
-            const villainsAlive = (fight.villanos || []).filter(v => v.vida > 0).length;
-            
-            if (heroesAlive === 0 && villainsAlive > 0) {
-                winner = 'Equipo Villanos';
-                isWinner = true;
-            } else if (villainsAlive === 0 && heroesAlive > 0) {
-                winner = 'Equipo Héroes';
-                isWinner = true;
-            } else if (heroesAlive === 0 && villainsAlive === 0) {
-                winner = 'Empate';
-                isWinner = true;
+            // Para peleas de equipos, usar directamente el campo resultado
+            console.log('Pelea de equipos - resultado:', fight.resultado);
+            if (fight.resultado) {
+                // Convertir el resultado a texto legible
+                if (fight.resultado === 'victory') {
+                    resultText = 'Victoria';
+                } else if (fight.resultado === 'defeat') {
+                    resultText = 'Derrota';
+                } else {
+                    resultText = fight.resultado; // Usar el valor tal como está si no es victory/defeat
+                }
+                console.log('Usando resultado de la base de datos:', resultText);
+            } else {
+                // Intentar determinar el resultado basándose en otros datos
+                console.log('No hay resultado en la base de datos, intentando determinar...');
+                
+                // Si tiene simulados, intentar determinar basándose en la vida
+                if (fight.simulados && Object.keys(fight.simulados).length > 0) {
+                    const simulados = fight.simulados;
+                    const heroesAlive = (fight.heroes || []).filter(h => {
+                        const heroId = h.id || h._id;
+                        return simulados[heroId] && simulados[heroId] > 0;
+                    }).length;
+                    const villainsAlive = (fight.villanos || []).filter(v => {
+                        const villainId = v.id || v._id;
+                        return simulados[villainId] && simulados[villainId] > 0;
+                    }).length;
+                    
+                    console.log('Análisis de vida - Héroes vivos:', heroesAlive, 'Villanos vivos:', villainsAlive);
+                    
+                    if (heroesAlive === 0 && villainsAlive > 0) {
+                        resultText = 'Derrota';
+                        console.log('Determinado por vida: Derrota');
+                    } else if (villainsAlive === 0 && heroesAlive > 0) {
+                        resultText = 'Victoria';
+                        console.log('Determinado por vida: Victoria');
+                    } else if (heroesAlive === 0 && villainsAlive === 0) {
+                        // Ambos equipos muertos - mostrar como inconclusa
+                        resultText = 'Inconclusa';
+                        console.log('Ambos equipos muertos - Inconclusa');
+                    } else {
+                        console.log('No se puede determinar el resultado por vida');
+                    }
+                } else {
+                    console.log('No hay datos de simulados para determinar resultado');
+                }
             }
         } else if (isNewStructureFight) {
             // Para peleas 1v1 con nueva estructura, verificar vida de los personajes
@@ -327,38 +399,25 @@ class HistoryManager {
             const personaje2 = fight.personaje2 || {};
             
             if (personaje1.vida <= 0 && personaje2.vida > 0) {
-                winner = personaje2.nombre;
-                isWinner = true;
+                resultText = personaje2.tipo === 'superheroe' ? 'Victoria' : 'Derrota';
             } else if (personaje2.vida <= 0 && personaje1.vida > 0) {
-                winner = personaje1.nombre;
-                isWinner = true;
+                resultText = personaje1.tipo === 'superheroe' ? 'Victoria' : 'Derrota';
             } else if (personaje1.vida <= 0 && personaje2.vida <= 0) {
-                winner = 'Empate';
-                isWinner = true;
+                resultText = 'Inconclusa';
             }
         } else if (isOldStructureFight) {
             // Para peleas con estructura antigua, usar el campo winner
-            winner = fight.winner;
-            isWinner = true;
+            resultText = fight.winner || 'Inconclusa';
         }
         
-        if (isWinner) {
-            resultHTML = `
-                <div class="fight-result">
-                    <div class="winner-indicator">🏆 Ganador</div>
-                    <div class="result-text">${winner}</div>
-                </div>
-            `;
-        } else {
-            resultHTML = `
-                <div class="fight-result">
-                    <div class="result-text">Pelea inconclusa</div>
-                </div>
-            `;
-        }
+        resultHTML = `
+            <div class="fight-result">
+                <div class="result-text">${resultText}</div>
+            </div>
+        `;
         
         return `
-            <div class="fight-card ${isWinner ? 'winner' : ''}">
+            <div class="fight-card">
                 <div class="fight-header">
                     <span class="fight-type">${fightType}</span>
                     <span class="fight-date">${formattedDate}</span>

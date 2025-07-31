@@ -677,6 +677,108 @@ router.delete('/fights/:fightId', async (req, res) => {
 
 /**
  * @swagger
+ * /api/fights/teams/complete:
+ *   post:
+ *     summary: Guardar una pelea de equipos completada
+ *     tags: [Peleas]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               heroes:
+ *                 type: array
+ *                 description: Array de héroes participantes
+ *               villanos:
+ *                 type: array
+ *                 description: Array de villanos participantes
+ *               simulados:
+ *                 type: object
+ *                 description: Estado final de todos los personajes
+ *               resultado:
+ *                 type: string
+ *                 enum: [victory, defeat]
+ *                 description: Resultado de la pelea
+ *               fecha:
+ *                 type: string
+ *                 description: Fecha de la pelea
+ *               tipo:
+ *                 type: string
+ *                 description: Tipo de pelea
+ *             required:
+ *               - heroes
+ *               - villanos
+ *               - simulados
+ *               - resultado
+ *               - fecha
+ *               - tipo
+ *     responses:
+ *       200:
+ *         description: Pelea guardada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 fightId:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Datos inválidos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+// POST para guardar pelea de equipos completada
+router.post('/fights/teams/complete', async (req, res) => {
+  try {
+    console.log('Recibida petición POST /fights/teams/complete:', req.body);
+    
+    const { heroes, villanos, simulados, resultado, fecha, tipo, creador } = req.body;
+    
+    if (!heroes || !villanos || !simulados || !resultado || !fecha || !tipo) {
+      return res.status(400).json({ error: 'Faltan datos requeridos' });
+    }
+    
+    // Obtener el siguiente ID de pelea
+    const fights = await fightRepository.getFights();
+    const nuevoFightId = fights.length > 0 ? Math.max(...fights.map(f => f.fightId)) + 1 : 1;
+    
+    // Preparar datos de la pelea
+    const fightData = {
+      fightId: nuevoFightId,
+      heroes,
+      villanos,
+      simulados,
+      resultado,
+      fecha,
+      tipo,
+      creador: creador || (req.user && req.user.name) || 'Usuario',
+      rondas: [] // Se puede expandir para incluir el historial de rondas
+    };
+    
+    console.log('Guardando pelea completada con ID:', nuevoFightId);
+    console.log('Datos a guardar:', JSON.stringify(fightData, null, 2));
+    await fightRepository.addFight(fightData);
+    
+    console.log('Pelea completada guardada exitosamente');
+    res.json({
+      fightId: nuevoFightId,
+      message: 'Pelea guardada exitosamente en el historial'
+    });
+    
+  } catch (error) {
+    console.error('Error guardando pelea completada:', error);
+    res.status(500).json({ error: 'Error al guardar la pelea' });
+  }
+});
+
+/**
+ * @swagger
  * /api/fights:
  *   delete:
  *     summary: Eliminar todas las peleas del historial
