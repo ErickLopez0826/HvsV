@@ -1,5 +1,16 @@
 // ===== CONFIGURACIÓN GLOBAL =====
-const API_BASE_URL = 'http://localhost:3003/api'; // Ajustar según tu configuración
+// Detectar automáticamente si estamos en local o en producción
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = isLocalhost 
+    ? 'http://localhost:3003/api' 
+    : `${window.location.protocol}//${window.location.hostname}/api`;
+
+console.log('🌐 Configuración de API:', {
+    hostname: window.location.hostname,
+    isLocalhost,
+    API_BASE_URL
+});
+
 let currentUser = null;
 
 // ===== CLASE PRINCIPAL DE LA APLICACIÓN =====
@@ -207,6 +218,8 @@ class GameApp {
             password: formData.get('password')
         };
 
+        console.log('📝 Intentando registrar usuario:', registerData.name);
+
         try {
             this.showLoading('Creando cuenta...');
             
@@ -214,12 +227,16 @@ class GameApp {
             const response = await fetch(`${API_BASE_URL}/users`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify(registerData)
             });
 
+            console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+
             const data = await response.json();
+            console.log('📄 Datos de respuesta:', data);
 
             if (response.ok) {
                 this.hideLoading();
@@ -234,12 +251,14 @@ class GameApp {
                 }, 1500);
             } else {
                 this.hideLoading();
-                this.showError(data.message || 'Error al crear la cuenta');
+                const errorMessage = data.message || data.error || 'Error al crear la cuenta';
+                this.showError(errorMessage);
+                console.error('❌ Error en registro:', data);
             }
         } catch (error) {
             this.hideLoading();
-            this.showError('Error de conexión. Intenta nuevamente.');
-            console.error('Error de registro:', error);
+            console.error('💥 Error de conexión:', error);
+            this.showError('Error de conexión. Verifica tu conexión a internet e intenta nuevamente.');
         }
     }
 

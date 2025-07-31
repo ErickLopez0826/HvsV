@@ -51,22 +51,63 @@ router.post(
     check('password').not().isEmpty().withMessage('La contraseña es requerida')
   ],
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ error: errors.array() });
+    try {
+      console.log('📝 Recibida petición de registro:', req.body);
+      
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        console.log('❌ Errores de validación:', errors.array());
+        return res.status(400).json({ 
+          error: 'Datos inválidos',
+          details: errors.array() 
+        });
+      }
+      
+      const { name, password } = req.body;
+      console.log('👤 Intentando registrar usuario:', name);
+      
+      // Verificar si el usuario ya existe
+      const users = await userRepository.getUsers();
+      const existingUser = users.find(u => u.name === name);
+      
+      if (existingUser) {
+        console.log('❌ Usuario ya existe:', name);
+        return res.status(400).json({ 
+          error: 'El usuario ya existe',
+          message: 'Por favor, elige otro nombre de usuario'
+        });
+      }
+      
+      // Encriptar contraseña
+      const hashedPassword = await bcrypt.hash(password, 10);
+      console.log('🔐 Contraseña encriptada correctamente');
+      
+      // Asignar un id incremental
+      const newId = users.length > 0 ? Math.max(...users.map(u => u.id || 0)) + 1 : 1;
+      const newUser = { id: newId, name, password: hashedPassword };
+      
+      // Guardar usuario
+      await userRepository.addUser(newUser);
+      console.log('✅ Usuario registrado correctamente:', name);
+      
+      // Generar token
+      const token = jwt.sign({ name }, JWT_SECRET, { expiresIn: '2h' });
+      console.log('🎫 Token generado correctamente');
+      
+      res.json({ 
+        token,
+        message: 'Usuario registrado exitosamente',
+        user: { id: newId, name }
+      });
+      
+    } catch (error) {
+      console.error('💥 Error en registro de usuario:', error);
+      res.status(500).json({ 
+        error: 'Error interno del servidor',
+        message: 'No se pudo registrar el usuario. Intenta nuevamente.',
+        details: error.message
+      });
     }
-    const { name, password } = req.body;
-    const users = await userRepository.getUsers();
-    if (users.find(u => u.name === name)) {
-      return res.status(400).json({ error: 'El usuario ya existe' });
-    }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    // Asignar un id incremental
-    const newId = users.length > 0 ? Math.max(...users.map(u => u.id || 0)) + 1 : 1;
-    const newUser = { id: newId, name, password: hashedPassword };
-    await userRepository.addUser(newUser);
-    const token = jwt.sign({ name }, JWT_SECRET, { expiresIn: '2h' });
-    res.json({ token });
   }
 );
 
