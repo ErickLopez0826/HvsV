@@ -1391,3 +1391,87 @@ body {
 .combat-character:not(.enemy-character).selected .combat-character-image {
     filter: brightness(1.2) hue-rotate(30deg);
 }
+
+/* ===== ESTILOS PARA EQUIPOS GUARDADOS ===== */
+.teams-section {
+    margin-bottom: 2rem;
+}
+
+.teams-section h4 {
+    color: var(--accent-color);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--accent-color);
+}
+
+.saved-team {
+    border: 2px solid #4CAF50;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.saved-team::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4CAF50, #45a049);
+}
+
+.saved-team:hover {
+    border-color: #45a049;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.1) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+}
+
+.team-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.team-header h4 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.saved-badge {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+    animation: saved-badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes saved-badge-pulse {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.5);
+    }
+}
+
+/* Estilos para equipos predefinidos */
+.team-card:not(.saved-team) {
+    border: 2px solid var(--bg-tertiary);
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+}
+
+.team-card:not(.saved-team):hover {
+    border-color: var(--accent-color);
+    background: linear-gradient(135deg, rgba(255, 156, 0, 0.1) 0%, rgba(255, 156, 0, 0.05) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 156, 0, 0.2);
+}

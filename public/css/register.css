@@ -1,5 +1,37 @@
 /* ===== REGISTER SPECIFIC STYLES ===== */
 
+/* SOBRESCRIBIR REGLAS PROBLEMÁTICAS DEL CSS PRINCIPAL */
+html, body {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 100vh !important;
+}
+
+body {
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+}
+
+/* Asegurar que la pantalla de registro sea visible */
+#register-screen {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 100vh !important;
+    background: linear-gradient(135deg, #2b2d31 0%, #3a3f44 100%) !important;
+    position: relative !important;
+    z-index: 1 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+#register-screen.active {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
 /* FORZAR ESTILOS COMPACTOS - VERSIÓN 1.1 */
 .register-card {
     position: relative;
@@ -8,6 +40,14 @@
     width: 100% !important;
     max-width: 350px !important;
     margin: 0 !important;
+    background: rgba(58, 63, 68, 0.9) !important;
+    backdrop-filter: blur(10px) !important;
+    border-radius: 15px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .register-card::before {
@@ -30,44 +70,70 @@
     position: relative;
     z-index: 2;
     gap: 1rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 #register-form .input-group {
     position: relative;
     margin-bottom: 1rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 #register-form .input-group input {
-    background: rgba(74, 79, 85, 0.8);
-    backdrop-filter: blur(10px);
-    border: 2px solid transparent;
-    transition: all var(--transition-fast);
+    background: rgba(74, 79, 85, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 2px solid transparent !important;
+    transition: all 0.3s ease !important;
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    color: #FFFFFF !important;
+    font-size: 1rem !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 #register-form .input-group input:focus {
-    background: rgba(74, 79, 85, 0.9);
-    border-color: var(--btn-secondary);
-    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.2);
+    background: rgba(74, 79, 85, 0.9) !important;
+    border-color: #00BFFF !important;
+    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.2) !important;
+    outline: none !important;
 }
 
 /* Validación visual de campos */
 #register-form .input-group input:valid {
-    border-color: rgba(0, 255, 0, 0.3);
+    border-color: rgba(0, 255, 0, 0.3) !important;
 }
 
 #register-form .input-group input:invalid:not(:placeholder-shown) {
-    border-color: rgba(255, 71, 87, 0.3);
+    border-color: rgba(255, 71, 87, 0.3) !important;
 }
 
 /* Botón de registro con efecto especial */
 #register-form .btn-primary {
-    background: linear-gradient(135deg, var(--btn-secondary), var(--btn-secondary-hover));
-    position: relative;
-    overflow: hidden;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    background: linear-gradient(135deg, #00BFFF, #0080FF) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
     margin-top: 0.5rem !important;
+    padding: 12px 24px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: #FFFFFF !important;
+    font-size: 1rem !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 #register-form .btn-primary::after {
@@ -88,13 +154,22 @@
     left: 100%;
 }
 
+#register-form .btn-primary:hover {
+    background: linear-gradient(135deg, #0080FF, #0066CC) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3) !important;
+}
+
 /* Enlace de login */
 #show-login {
-    color: var(--btn-primary);
-    font-weight: 600;
-    text-decoration: none;
-    transition: all var(--transition-fast);
-    position: relative;
+    color: #00BFFF !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    display: inline-block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 #show-login::after {
@@ -104,8 +179,8 @@
     left: 0;
     width: 0;
     height: 2px;
-    background: var(--btn-primary);
-    transition: width var(--transition-fast);
+    background: #00BFFF;
+    transition: width 0.3s ease;
 }
 
 #show-login:hover::after {
@@ -128,23 +203,107 @@
     }
 }
 
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+}
+
 /* Indicadores de fortaleza de contraseña */
 .password-strength {
     margin-top: 0.5rem;
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: #72767d;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .password-strength.weak {
-    color: var(--btn-danger);
+    color: #ff4444;
 }
 
 .password-strength.medium {
-    color: var(--btn-primary);
+    color: #FF9C00;
 }
 
 .password-strength.strong {
     color: #00FF00;
+}
+
+/* Asegurar que los labels sean visibles */
+#register-form .input-group label {
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    margin-bottom: 0.5rem !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Asegurar que el contenedor sea visible */
+.container {
+    width: 100% !important;
+    max-width: 400px !important;
+    padding: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+}
+
+/* Asegurar que el logo section sea visible */
+.logo-section {
+    text-align: center !important;
+    margin-bottom: 2rem !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.logo-section .game-title {
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    background: linear-gradient(135deg, #00BFFF, #FF6B35) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.logo-section .subtitle {
+    font-size: 1.1rem !important;
+    color: #CCCCCC !important;
+    margin: 0.5rem 0 0 0 !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Asegurar que el form footer sea visible */
+.form-footer {
+    text-align: center !important;
+    margin-top: 1rem !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.form-footer p {
+    margin: 0 !important;
+    color: #CCCCCC !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 /* Responsive específico para registro */
@@ -155,11 +314,11 @@
     }
     
     #register-form .btn-primary {
-        padding: 1rem 1.5rem;
-        font-size: 0.9rem;
+        padding: 1rem 1.5rem !important;
+        font-size: 0.9rem !important;
     }
     
     #register-form {
-        gap: 1rem;
+        gap: 1rem !important;
     }
 } 

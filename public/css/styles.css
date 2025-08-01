@@ -97,14 +97,13 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     width: 100%;
     height: 100%;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(20px);
+    display: none;
     transition: all var(--transition-medium);
     z-index: 1;
 }
 
 .screen.active {
+    display: flex;
     opacity: 1;
     visibility: visible;
     transform: translateY(0);

@@ -209,7 +209,8 @@ const fightTeamsApp = {
             const heroes = allCharacters.filter(char => char.tipo === 'superheroe');
             const villains = allCharacters.filter(char => char.tipo === 'villano');
             
-            availableTeams = [
+            // Equipos predefinidos
+            const predefinedTeams = [
                 {
                     id: 'heroes1',
                     nombre: 'Equipo Héroes 1',
@@ -236,7 +237,32 @@ const fightTeamsApp = {
                 }
             ];
             
-            console.log(`👥 Cargados ${availableTeams.length} equipos disponibles`);
+            // Cargar equipos guardados desde la base de datos
+            try {
+                const response = await this.fetchWithAuth('/api/equipos');
+                if (response.ok) {
+                    const data = await response.json();
+                    const savedTeams = data.equipos.map(team => ({
+                        id: `saved_${team.nombre}`,
+                        nombre: team.nombre,
+                        characters: team.integrantes.map(char => 
+                            allCharacters.find(c => c.id === char.id)
+                        ).filter(Boolean),
+                        tipo: team.integrantes[0]?.tipo || 'superheroe',
+                        isSaved: true
+                    }));
+                    
+                    // Combinar equipos predefinidos con equipos guardados
+                    availableTeams = [...predefinedTeams, ...savedTeams];
+                    console.log(`👥 Cargados ${availableTeams.length} equipos (${predefinedTeams.length} predefinidos + ${savedTeams.length} guardados)`);
+                } else {
+                    console.warn('No se pudieron cargar equipos guardados, usando solo predefinidos');
+                    availableTeams = predefinedTeams;
+                }
+            } catch (error) {
+                console.warn('Error cargando equipos guardados:', error);
+                availableTeams = predefinedTeams;
+            }
             
         } catch (error) {
             console.error('Error cargando equipos:', error);
@@ -321,23 +347,56 @@ const fightTeamsApp = {
         const modal = document.getElementById('team-select-modal');
         const content = document.getElementById('available-teams');
         
+        const villainTeams = availableTeams.filter(team => team.tipo === 'villano');
+        const predefinedTeams = villainTeams.filter(team => !team.isSaved);
+        const savedTeams = villainTeams.filter(team => team.isSaved);
+        
         content.innerHTML = `
             <h3>Selecciona el Equipo Enemigo</h3>
-            <div class="teams-grid">
-                ${availableTeams.filter(team => team.tipo === 'villano').map(team => `
-                    <div class="team-card" onclick="fightTeamsApp.selectEnemyTeam('${team.id}')">
-                        <h4>${team.nombre}</h4>
-                        <div class="team-characters">
-                            ${team.characters.map(char => `
-                                <div class="team-character">
-                                    <img src="../images/Personajes/${this.getCharacterImageName(char.nombre)}.webp" alt="${char.nombre}" class="character-image">
-                                    <span>${char.nombre}</span>
+            
+            ${savedTeams.length > 0 ? `
+                <div class="teams-section">
+                    <h4>🏆 Equipos Guardados</h4>
+                    <div class="teams-grid">
+                        ${savedTeams.map(team => `
+                            <div class="team-card saved-team" onclick="fightTeamsApp.selectEnemyTeam('${team.id}')">
+                                <div class="team-header">
+                                    <h4>${team.nombre}</h4>
+                                    <span class="saved-badge">💾 Guardado</span>
                                 </div>
-                            `).join('')}
-                        </div>
+                                <div class="team-characters">
+                                    ${team.characters.map(char => `
+                                        <div class="team-character">
+                                            <img src="../images/Personajes/${this.getCharacterImageName(char.nombre)}.webp" alt="${char.nombre}" class="character-image">
+                                            <span>${char.nombre}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
-                `).join('')}
+                </div>
+            ` : ''}
+            
+            <div class="teams-section">
+                <h4>🎲 Equipos Predefinidos</h4>
+                <div class="teams-grid">
+                    ${predefinedTeams.map(team => `
+                        <div class="team-card" onclick="fightTeamsApp.selectEnemyTeam('${team.id}')">
+                            <h4>${team.nombre}</h4>
+                            <div class="team-characters">
+                                ${team.characters.map(char => `
+                                    <div class="team-character">
+                                        <img src="../images/Personajes/${this.getCharacterImageName(char.nombre)}.webp" alt="${char.nombre}" class="character-image">
+                                        <span>${char.nombre}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
+            
             <div class="modal-actions">
                 <button onclick="fightTeamsApp.cancelTeamSelection()" class="btn btn-secondary">Cancelar</button>
             </div>
@@ -370,23 +429,56 @@ const fightTeamsApp = {
         const modal = document.getElementById('player-team-select-modal');
         const content = document.getElementById('available-player-teams');
         
+        const heroTeams = availableTeams.filter(team => team.tipo === 'superheroe');
+        const predefinedTeams = heroTeams.filter(team => !team.isSaved);
+        const savedTeams = heroTeams.filter(team => team.isSaved);
+        
         content.innerHTML = `
             <h3>Selecciona tu Equipo</h3>
-            <div class="teams-grid">
-                ${availableTeams.filter(team => team.tipo === 'superheroe').map(team => `
-                    <div class="team-card" onclick="fightTeamsApp.selectPlayerTeam('${team.id}')">
-                        <h4>${team.nombre}</h4>
-                        <div class="team-characters">
-                            ${team.characters.map(char => `
-                                <div class="team-character">
-                                    <img src="../images/Personajes/${this.getCharacterImageName(char.nombre)}.webp" alt="${char.nombre}" class="character-image">
-                                    <span>${char.nombre}</span>
+            
+            ${savedTeams.length > 0 ? `
+                <div class="teams-section">
+                    <h4>🏆 Equipos Guardados</h4>
+                    <div class="teams-grid">
+                        ${savedTeams.map(team => `
+                            <div class="team-card saved-team" onclick="fightTeamsApp.selectPlayerTeam('${team.id}')">
+                                <div class="team-header">
+                                    <h4>${team.nombre}</h4>
+                                    <span class="saved-badge">💾 Guardado</span>
                                 </div>
-                            `).join('')}
-                        </div>
+                                <div class="team-characters">
+                                    ${team.characters.map(char => `
+                                        <div class="team-character">
+                                            <img src="../images/Personajes/${this.getCharacterImageName(char.nombre)}.webp" alt="${char.nombre}" class="character-image">
+                                            <span>${char.nombre}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
-                `).join('')}
+                </div>
+            ` : ''}
+            
+            <div class="teams-section">
+                <h4>🎲 Equipos Predefinidos</h4>
+                <div class="teams-grid">
+                    ${predefinedTeams.map(team => `
+                        <div class="team-card" onclick="fightTeamsApp.selectPlayerTeam('${team.id}')">
+                            <h4>${team.nombre}</h4>
+                            <div class="team-characters">
+                                ${team.characters.map(char => `
+                                    <div class="team-character">
+                                        <img src="../images/Personajes/${this.getCharacterImageName(char.nombre)}.webp" alt="${char.nombre}" class="character-image">
+                                        <span>${char.nombre}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
+            
             <div class="modal-actions">
                 <button onclick="fightTeamsApp.cancelPlayerTeamSelection()" class="btn btn-secondary">Cancelar</button>
             </div>

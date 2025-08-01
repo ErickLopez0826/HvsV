@@ -246,6 +246,11 @@ app.get('/login', (req, res) => {
   res.sendFile('html/index.html', { root: 'public' })
 })
 
+// Ruta específica para el registro
+app.get('/register', (req, res) => {
+  res.sendFile('html/register.html', { root: 'public' })
+})
+
 // Ruta específica para peleas de equipos
 app.get('/fight-teams', (req, res) => {
   res.sendFile('html/fight_teams.html', { root: 'public' })
@@ -254,6 +259,11 @@ app.get('/fight-teams', (req, res) => {
 // Ruta específica para el index.html
 app.get('/index.html', (req, res) => {
   res.sendFile('html/index.html', { root: 'public' })
+})
+
+// Ruta específica para el register.html
+app.get('/register.html', (req, res) => {
+  res.sendFile('html/register.html', { root: 'public' })
 })
 
 

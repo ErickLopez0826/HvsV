@@ -297,15 +297,12 @@
 /* Transiciones suaves entre pantallas */
 .screen {
     transition: opacity 0.3s ease-in-out;
+    display: none;
 }
 
 .screen.active {
     opacity: 1;
-}
-
-.screen:not(.active) {
-    opacity: 0;
-    pointer-events: none;
+    display: flex;
 }
 
 @keyframes slideInFromLeft {
